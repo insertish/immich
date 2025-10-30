@@ -11,7 +11,24 @@ if (immichApp) {
   process.argv.splice(2, 1);
 }
 
+/**
+ * Child API process
+ *
+ * Only present in the parent process
+ */
 let apiProcess: ChildProcess | undefined;
+
+/**
+ * Keep track of active workers
+ *
+ * Only present in the parent process
+ */
+let workers: Worker[] = [];
+
+/**
+ * Whether to keep this process active
+ */
+let keepAlive: boolean = false;
 
 const onError = (name: string, error: Error) => {
   console.error(`${name} worker error: ${error}, stack: ${error.stack}`);
@@ -26,8 +43,30 @@ const onExit = (name: string, exitCode: number | null) => {
       apiProcess.kill('SIGTERM');
       apiProcess = undefined;
     }
+
+    if (exitCode === 7 && name === ImmichWorker.Api) {
+      console.info('Immich is restarting!');
+
+      // when Worker(s) terminate they will trigger onExit
+      // which will attempt to close out the parent process
+      // we want to ignore this behaviour
+      keepAlive = true;
+
+      for (const worker of workers) {
+        worker.terminate();
+      }
+
+      workers = [];
+
+      fork(process.argv[1], process.argv.slice(2), {
+        execArgv: process.execArgv,
+      }).on('exit', (exitCode) => process.exit(exitCode));
+
+      return;
+    }
   }
 
+  if (keepAlive) return;
   process.exit(exitCode);
 };
 
@@ -46,6 +85,7 @@ function bootstrapWorker(name: ImmichWorker) {
     apiProcess = worker;
   } else {
     worker = new Worker(workerFile);
+    workers.push(worker);
   }
 
   worker.on('error', (error) => onError(name, error));
