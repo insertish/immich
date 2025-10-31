@@ -8353,6 +8353,34 @@
         "description": "This endpoint is an admin-only route, and requires the `systemConfig.read` permission."
       }
     },
+    "/system-config/enable-maintenance-mode": {
+      "post": {
+        "operationId": "enableMaintenanceMode",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "tags": [
+          "System Config"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "systemConfig.update",
+        "description": "This endpoint is an admin-only route, and requires the `systemConfig.update` permission."
+      }
+    },
     "/system-config/storage-template-options": {
       "get": {
         "operationId": "getStorageTemplateOptions",

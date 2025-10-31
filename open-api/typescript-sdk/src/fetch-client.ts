@@ -4216,6 +4216,15 @@ export function getConfigDefaults(opts?: Oazapfts.RequestOpts) {
     }));
 }
 /**
+ * This endpoint is an admin-only route, and requires the `systemConfig.update` permission.
+ */
+export function enableMaintenanceMode(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/system-config/enable-maintenance-mode", {
+        ...opts,
+        method: "POST"
+    }));
+}
+/**
  * This endpoint is an admin-only route, and requires the `systemConfig.read` permission.
  */
 export function getStorageTemplateOptions(opts?: Oazapfts.RequestOpts) {

@@ -44,7 +44,12 @@ const onExit = (name: string, exitCode: number | null) => {
       apiProcess = undefined;
     }
 
-    if (exitCode === 7 && name === ImmichWorker.Api) {
+    if (exitCode === 7) {
+      if (name !== ImmichWorker.Api) {
+        // we are in the child process, ignore.
+        return;
+      }
+
       console.info('Immich is restarting!');
 
       // when Worker(s) terminate they will trigger onExit

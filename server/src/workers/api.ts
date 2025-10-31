@@ -12,6 +12,7 @@ import { ConfigRepository } from 'src/repositories/config.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { bootstrapTelemetry } from 'src/repositories/telemetry.repository';
 import { ApiService } from 'src/services/api.service';
+import { MaintenanceService } from 'src/services/maintenance.service';
 import { isStartUpError, useSwagger } from 'src/utils/misc';
 async function bootstrap() {
   process.title = 'immich-api';
@@ -59,6 +60,8 @@ async function bootstrap() {
   }
   app.use(app.get(ApiService).ssr(excludePaths));
   app.use(compression());
+
+  app.get(MaintenanceService).setApp(app);
 
   const server = await (host ? app.listen(port, host) : app.listen(port));
   server.requestTimeout = 24 * 60 * 60 * 1000;

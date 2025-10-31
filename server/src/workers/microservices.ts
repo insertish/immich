@@ -6,6 +6,7 @@ import { WebSocketAdapter } from 'src/middleware/websocket.adapter';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { bootstrapTelemetry } from 'src/repositories/telemetry.repository';
+import { MaintenanceService } from 'src/services/maintenance.service';
 import { isStartUpError } from 'src/utils/misc';
 
 export async function bootstrap() {
@@ -23,6 +24,8 @@ export async function bootstrap() {
   logger.setContext('Bootstrap');
   app.useLogger(logger);
   app.useWebSocketAdapter(new WebSocketAdapter(app));
+
+  app.get(MaintenanceService).setApp(app);
 
   await (host ? app.listen(0, host) : app.listen(0));
 
