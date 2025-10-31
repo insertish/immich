@@ -1572,6 +1572,9 @@ export type SystemConfigDto = {
     trash: SystemConfigTrashDto;
     user: SystemConfigUserDto;
 };
+export type SetMaintenanceModeDto = {
+    enabled: boolean;
+};
 export type SystemConfigTemplateStorageOptionDto = {
     dayOptions: string[];
     hourOptions: string[];
@@ -4215,14 +4218,22 @@ export function getConfigDefaults(opts?: Oazapfts.RequestOpts) {
         ...opts
     }));
 }
+export function isMaintenanceMode(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/system-config/maintenance-mode", {
+        ...opts
+    }));
+}
 /**
  * This endpoint is an admin-only route, and requires the `systemConfig.update` permission.
  */
-export function enableMaintenanceMode(opts?: Oazapfts.RequestOpts) {
-    return oazapfts.ok(oazapfts.fetchText("/system-config/enable-maintenance-mode", {
+export function setMaintenanceMode({ setMaintenanceModeDto }: {
+    setMaintenanceModeDto: SetMaintenanceModeDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/system-config/maintenance-mode", oazapfts.json({
         ...opts,
-        method: "POST"
-    }));
+        method: "PUT",
+        body: setMaintenanceModeDto
+    })));
 }
 /**
  * This endpoint is an admin-only route, and requires the `systemConfig.read` permission.

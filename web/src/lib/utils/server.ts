@@ -1,6 +1,7 @@
 import { retrieveServerConfig } from '$lib/stores/server-config.store';
 import { initLanguage } from '$lib/utils';
-import { defaults } from '@immich/sdk';
+import { defaults, isMaintenanceMode } from '@immich/sdk';
+import { redirect } from '@sveltejs/kit';
 import { memoize } from 'lodash-es';
 
 type Fetch = typeof fetch;
@@ -11,6 +12,12 @@ async function _init(fetch: Fetch) {
   // https://github.com/oazapfts/oazapfts/blob/main/README.md#fetch-options
   defaults.fetch = fetch;
   await initLanguage();
+
+  const { enabled } = await isMaintenanceMode();
+  if (enabled) {
+    throw redirect(302, '/maintenance');
+  }
+
   await retrieveServerConfig();
 }
 

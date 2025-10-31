@@ -60,5 +60,9 @@
     "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock, pnpm-workspace.yaml, .pnpmfile.cjs"
   },
   "svelte.enable-ts-plugin": true,
-  "typescript.preferences.importModuleSpecifier": "non-relative"
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "dart.flutterSdkPath": "/Users/insert/.local/share/mise/installs/flutter/3.35.7-stable",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/insert/.local/share/mise/shims/node"
+  }
 }

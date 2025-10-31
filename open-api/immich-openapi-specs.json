@@ -8353,12 +8353,41 @@
         "description": "This endpoint is an admin-only route, and requires the `systemConfig.read` permission."
       }
     },
-    "/system-config/enable-maintenance-mode": {
-      "post": {
-        "operationId": "enableMaintenanceMode",
+    "/system-config/maintenance-mode": {
+      "get": {
+        "operationId": "isMaintenanceMode",
         "parameters": [],
         "responses": {
-          "201": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceModeDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "System Config"
+        ]
+      },
+      "put": {
+        "operationId": "setMaintenanceMode",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceModeDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -12600,6 +12629,17 @@
           "enabled",
           "interval",
           "timeout"
+        ],
+        "type": "object"
+      },
+      "MaintenanceModeDto": {
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
         ],
         "type": "object"
       },

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { enableMaintenanceMode } from '@immich/sdk';
+  import { isMaintenanceMode, setMaintenanceMode } from '@immich/sdk';
   import { Button } from '@immich/ui';
   import { t } from 'svelte-i18n';
   import { fade } from 'svelte/transition';
@@ -11,8 +11,25 @@
   let { disabled = false }: Props = $props();
 
   async function enable() {
-    await enableMaintenanceMode();
-    // => reload the page
+    await setMaintenanceMode({
+      setMaintenanceModeDto: {
+        enabled: true,
+      },
+    });
+
+    // todo: 'please wait' or something in UI
+
+    const timer = setInterval(() => {
+      isMaintenanceMode()
+        .then(({ enabled }) => {
+          if (enabled) {
+            location.href = '/maintenance';
+          }
+
+          clearInterval(timer);
+        })
+        .catch((_) => {});
+    }, 1000);
   }
 </script>
 

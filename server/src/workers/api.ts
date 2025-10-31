@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs';
 import sirv from 'sirv';
 import { ApiModule } from 'src/app.module';
 import { excludePaths, serverVersion } from 'src/constants';
+import { MaintenanceMiddleware } from 'src/middleware/maintenance.middleware';
 import { WebSocketAdapter } from 'src/middleware/websocket.adapter';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
@@ -62,6 +63,7 @@ async function bootstrap() {
   app.use(compression());
 
   app.get(MaintenanceService).setApp(app);
+  app.use(new MaintenanceMiddleware().use);
 
   const server = await (host ? app.listen(port, host) : app.listen(port));
   server.requestTimeout = 24 * 60 * 60 * 1000;

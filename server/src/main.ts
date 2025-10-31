@@ -65,6 +65,10 @@ const onExit = (name: string, exitCode: number | null) => {
 
       fork(process.argv[1], process.argv.slice(2), {
         execArgv: process.execArgv,
+        env: {
+          ...process.env,
+          MAINTENANCE_MODE: '1',
+        },
       }).on('exit', (exitCode) => process.exit(exitCode));
 
       return;

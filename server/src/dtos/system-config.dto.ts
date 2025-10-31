@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -737,6 +738,11 @@ export class SystemConfigDto implements SystemConfig {
   @ValidateNested()
   @IsObject()
   user!: SystemConfigUserDto;
+}
+
+export class MaintenanceModeDto {
+  @IsBoolean()
+  enabled!: boolean;
 }
 
 export function mapConfig(config: SystemConfig): SystemConfigDto {

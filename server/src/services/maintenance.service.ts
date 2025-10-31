@@ -22,11 +22,7 @@ export class MaintenanceService extends BaseService {
     await this.application?.close(); // gracefully shutdown
   }
 
-  async enableMaintenanceMode() {
-    await this.eventRepository.emit('AppRestart');
-  }
-
-  async disableMaintenanceMode() {
+  async setMaintenanceMode(enabled: boolean) {
     await this.eventRepository.emit('AppRestart');
   }
 }

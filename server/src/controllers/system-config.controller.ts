@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { SystemConfigDto, SystemConfigTemplateStorageOptionDto } from 'src/dtos/system-config.dto';
+import { MaintenanceModeDto, SystemConfigDto, SystemConfigTemplateStorageOptionDto } from 'src/dtos/system-config.dto';
 import { Permission } from 'src/enum';
 import { Authenticated } from 'src/middleware/auth.guard';
 import { MaintenanceService } from 'src/services/maintenance.service';
@@ -40,9 +40,16 @@ export class SystemConfigController {
     return this.storageTemplateService.getStorageTemplateOptions();
   }
 
-  @Post('enable-maintenance-mode')
+  @Put('maintenance-mode')
   @Authenticated({ permission: Permission.SystemConfigUpdate, admin: true })
-  enableMaintenanceMode() {
-    this.maintenanceService.enableMaintenanceMode();
+  setMaintenanceMode(@Body() dto: MaintenanceModeDto) {
+    this.maintenanceService.setMaintenanceMode(dto.enabled);
+  }
+
+  @Get('maintenance-mode')
+  isMaintenanceMode(): MaintenanceModeDto {
+    return {
+      enabled: process.env.MAINTENANCE_MODE === '1',
+    };
   }
 }
