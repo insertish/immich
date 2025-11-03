@@ -18,6 +18,7 @@ outputs = { self, nixpkgs, flake-utils }:
       androidComposition = pkgs.androidenv.composeAndroidPackages {
         buildToolsVersions = [ buildToolsVersion "28.0.3" ];
         platformVersions = [ "36" "28" ];
+        cmakeVersions = [ "3.22.1" ];
         
         includeEmulator = false;
         includeSystemImages = false;
@@ -35,6 +36,7 @@ outputs = { self, nixpkgs, flake-utils }:
             flutter
             androidSdk
             jdk17
+            aapt
           ];
         };
     });
