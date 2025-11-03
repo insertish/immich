@@ -14,10 +14,10 @@ outputs = { self, nixpkgs, flake-utils }:
           allowUnfree = true;
         };
       };
-      buildToolsVersion = "34.0.0";
+      buildToolsVersion = "36.0.0";
       androidComposition = pkgs.androidenv.composeAndroidPackages {
         buildToolsVersions = [ buildToolsVersion "28.0.3" ];
-        platformVersions = [ "34" "28" ];
+        platformVersions = [ "36" "28" ];
         
         includeEmulator = false;
         includeSystemImages = false;
@@ -33,7 +33,7 @@ outputs = { self, nixpkgs, flake-utils }:
           ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
           buildInputs = [
             flutter
-            androidSdk # The customized SDK that we've made above
+            androidSdk
             jdk17
           ];
         };
