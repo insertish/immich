@@ -52,7 +52,7 @@ android {
   }
 
   defaultConfig {
-    applicationId "app.alextran.immich"
+    applicationId "izzy.immich2"
     minSdkVersion 26
     targetSdkVersion 35
     versionCode flutterVersionCode.toInteger()
@@ -82,7 +82,7 @@ android {
       signingConfig signingConfigs.release
     }
   }
-  namespace 'app.alextran.immich'
+  namespace 'izzy.immich2'
 
   externalNativeBuild {
     cmake {

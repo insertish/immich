@@ -1,4 +1,4 @@
-package app.alextran.immich
+package izzy.immich2
 
 import android.content.Context
 import android.os.Build
