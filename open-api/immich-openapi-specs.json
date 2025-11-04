@@ -12728,6 +12728,9 @@
       },
       "MaintenanceRestoreBackupResponseDto": {
         "properties": {
+          "error": {
+            "type": "string"
+          },
           "success": {
             "type": "boolean"
           }

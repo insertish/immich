@@ -12,6 +12,7 @@ export class MaintenanceRestoreBackupDto {
 
 export class MaintenanceRestoreBackupResponseDto {
   success!: boolean;
+  error?: string;
 }
 
 export class MaintenanceListBackupsResponseDto {

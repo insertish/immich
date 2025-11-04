@@ -40,8 +40,17 @@ export class MaintenanceController {
   @Post('backups/restore')
   // todo: auth
   async restoreBackup(@Body() dto: MaintenanceRestoreBackupDto): Promise<MaintenanceRestoreBackupResponseDto> {
-    return {
-      success: false,
-    };
+    try {
+      await this.backupService.restoreBackup(dto.backup);
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: (error as { message?: string }).message ?? 'Unknown error occurred, check logs!',
+      };
+    }
   }
 }

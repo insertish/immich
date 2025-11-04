@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
+import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import semver from 'semver';
 import { serverVersion } from 'src/constants';
@@ -239,6 +240,160 @@ export class BackupService extends BaseService {
 
     this.logger.log(`Database Backup Success`);
     return JobStatus.Success;
+  }
+
+  /**
+   * Restore an existing database backup
+   * @param filename Filename
+   */
+  async restoreBackup(filename: string): Promise<void> {
+    this.logger.debug(`Database Restore Started`);
+
+    try {
+      if (!this.isValidBackupName(filename)) {
+        // if we want to allow custom file names
+        // replace this with a check that we aren't
+        // traversing out of the backup directory
+        throw new Error('Invalid backup file format!');
+      }
+
+      const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
+        await this.buildPgArguments('psql');
+
+      if (!databaseIsSupported) {
+        this.logger.error(`Database Restore Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
+        throw new Error(`Unsupported PostgreSQL version:  ${databaseVersion}`);
+      }
+
+      const backupFilePath = path.join(StorageCore.getBaseFolder(StorageFolder.Backups), filename);
+      await stat(backupFilePath); // => check file exists
+
+      this.logger.log(`Dropping all connections to database and preparing for backup.`);
+
+      const PREPARE_SQL = `
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = current_database()
+          AND pid <> pg_backend_pid();
+
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+
+        GRANT ALL ON SCHEMA public TO postgres;
+        GRANT ALL ON SCHEMA public TO public;
+      `;
+
+      await new Promise<void>((resolve, reject) => {
+        const psql = this.processRepository.spawn(bin, args(), {
+          env: {
+            PATH: process.env.PATH,
+            PGPASSWORD: databasePassword,
+          },
+        });
+
+        psql.stdin.write(PREPARE_SQL);
+        psql.stdin.end();
+
+        let psqlLogs = '';
+
+        psql.stderr.on('data', (data) => (psqlLogs += data));
+
+        // catch stdin error so we can read errors from psql
+        psql.stdin.on('error', (error) => {
+          if ((error as { code?: string })?.code !== 'EPIPE') {
+            throw error;
+          }
+        });
+
+        psql.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Prepare failed with code ${code}`);
+            reject(`Prepare failed with code ${code}`);
+            this.logger.error(psqlLogs);
+            return;
+          }
+          if (psqlLogs) {
+            this.logger.debug(`psql logs\n${psqlLogs}`);
+          }
+          resolve();
+        });
+      });
+
+      this.logger.log(`Database Restore Starting.`);
+
+      const gzip = this.processRepository.spawn('gzip', ['-cd']);
+
+      const psql = this.processRepository.spawn(bin, args(), {
+        env: {
+          PATH: process.env.PATH,
+          PGPASSWORD: databasePassword,
+        },
+      });
+
+      gzip.stdout.pipe(psql.stdin);
+
+      const fileStream = await this.storageRepository.createReadStream(backupFilePath);
+      fileStream.stream.pipe(gzip.stdin);
+
+      await new Promise<void>((resolve, reject) => {
+        psql.on('error', (err) => {
+          this.logger.error(`Restore failed with error: ${err}`);
+          reject(err);
+        });
+
+        gzip.on('error', (err) => {
+          this.logger.error(`Gzip failed with error: ${err}`);
+          reject(err);
+        });
+
+        let psqlLogs = '';
+        let gzipLogs = '';
+
+        psql.stdout.on('data', (data) => console.info('' + data));
+        psql.stderr.on('data', (data) => console.error('' + data));
+
+        psql.stderr.on('data', (data) => (psqlLogs += data));
+        gzip.stderr.on('data', (data) => (gzipLogs += data));
+
+        // catch stdin error so we can read errors from psql
+        psql.stdin.on('error', (error) => {
+          if ((error as { code?: string })?.code !== 'EPIPE') {
+            throw error;
+          }
+        });
+
+        psql.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Restore failed with code ${code}`);
+            reject(`Restore failed with code ${code}`);
+            this.logger.error(psqlLogs);
+            return;
+          }
+          if (psqlLogs) {
+            this.logger.debug(`psql logs\n${psqlLogs}`);
+          }
+          this.logger.debug('psql exited with', code);
+          resolve();
+        });
+
+        gzip.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Gzip failed with code ${code}`);
+            reject(`Gzip failed with code ${code}`);
+            this.logger.error(gzipLogs);
+            return;
+          }
+        });
+      });
+    } catch (error) {
+      this.logger.error(`Database Restore Failure: ${error}`);
+      throw error;
+    }
+
+    this.websocketRepository.serverSend('AppRestart');
+    this.eventRepository.emit('AppRestart');
+
+    this.logger.log(`Database Restore Success`);
   }
 
   /**
