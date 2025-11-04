@@ -52,17 +52,7 @@ export class BackupService extends BaseService {
     } = await this.getConfig({ withCache: false });
 
     const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
-    const files = await this.storageRepository.readdir(backupsFolder);
-    const failedBackups = files.filter((file) => file.match(/immich-db-backup-.*\.sql\.gz\.tmp$/));
-    const backups = files
-      .filter((file) => {
-        const oldBackupStyle = file.match(/immich-db-backup-\d+\.sql\.gz$/);
-        //immich-db-backup-20250729T114018-v1.136.0-pg14.17.sql.gz
-        const newBackupStyle = file.match(/immich-db-backup-\d{8}T\d{6}-v.*-pg.*\.sql\.gz$/);
-        return oldBackupStyle || newBackupStyle;
-      })
-      .sort()
-      .toReversed();
+    const { backups, failedBackups } = await this.listBackups();
 
     const toDelete = backups.slice(config.keepLastAmount);
     toDelete.push(...failedBackups);
@@ -185,5 +175,25 @@ export class BackupService extends BaseService {
     this.logger.log(`Database Backup Success`);
     await this.cleanupDatabaseBackups();
     return JobStatus.Success;
+  }
+
+  async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
+    const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
+    const files = await this.storageRepository.readdir(backupsFolder);
+
+    return {
+      backups: files
+        .filter((name) => this.isValidBackupName(name))
+        .sort()
+        .toReversed(),
+      failedBackups: files.filter((file) => file.match(/immich-db-backup-.*\.sql\.gz\.tmp$/)),
+    };
+  }
+
+  private isValidBackupName(backup: string) {
+    const oldBackupStyle = backup.match(/immich-db-backup-\d+\.sql\.gz$/);
+    //immich-db-backup-20250729T114018-v1.136.0-pg14.17.sql.gz
+    const newBackupStyle = backup.match(/immich-db-backup-\d{8}T\d{6}-v.*-pg.*\.sql\.gz$/);
+    return oldBackupStyle || newBackupStyle;
   }
 }
