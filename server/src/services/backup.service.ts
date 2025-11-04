@@ -82,10 +82,7 @@ export class BackupService extends BaseService {
    */
   private async buildPgArguments(bin: 'pg_dump' | 'pg_dumpall' | 'psql'): Promise<{
     bin: string;
-    args: ({
-      database,
-      user,
-    }?: {
+    args: (config?: {
       /**
        * @deprecated
        */
@@ -158,7 +155,7 @@ export class BackupService extends BaseService {
     this.logger.debug(`Database Backup Started`);
 
     const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
-      await this.buildPgArguments('pg_dumpall');
+      await this.buildPgArguments('pg_dump');
 
     if (!databaseIsSupported) {
       this.logger.error(`Database Backup Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
