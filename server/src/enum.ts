@@ -630,6 +630,7 @@ export enum DatabaseLock {
   MediaLocation = 700,
   GetSystemConfig = 69,
   BackupDatabase = 42,
+  RestoreDatabase = 621,
   MemoryCreation = 777,
 }
 

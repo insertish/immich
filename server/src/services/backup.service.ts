@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
+import { randomBytes } from 'node:crypto';
+import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import semver from 'semver';
 import { serverVersion } from 'src/constants';
@@ -52,18 +54,7 @@ export class BackupService extends BaseService {
     } = await this.getConfig({ withCache: false });
 
     const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
-    const files = await this.storageRepository.readdir(backupsFolder);
-    const failedBackups = files.filter((file) => file.match(/immich-db-backup-.*\.sql\.gz\.tmp$/));
-    const backups = files
-      .filter((file) => {
-        const oldBackupStyle = file.match(/immich-db-backup-\d+\.sql\.gz$/);
-        //immich-db-backup-20250729T114018-v1.136.0-pg14.17.sql.gz
-        const newBackupStyle = file.match(/immich-db-backup-\d{8}T\d{6}-v.*-pg.*\.sql\.gz$/);
-        return oldBackupStyle || newBackupStyle;
-      })
-      .sort()
-      .toReversed();
-
+    const { backups, failedBackups } = await this.listBackups();
     const toDelete = backups.slice(config.keepLastAmount);
     toDelete.push(...failedBackups);
 
@@ -75,50 +66,91 @@ export class BackupService extends BaseService {
 
   @OnJob({ name: JobName.DatabaseBackup, queue: QueueName.BackupDatabase })
   async handleBackupDatabase(): Promise<JobStatus> {
-    this.logger.debug(`Database Backup Started`);
+    const status = await this.createBackup();
+    if (status !== JobStatus.Success) {
+      return status;
+    }
+
+    this.logger.log(`Database Backup Success`);
+    await this.cleanupDatabaseBackups();
+    return JobStatus.Success;
+  }
+
+  private async buildDatabaseParams(cli: 'pg_dump' | 'pg_dumpall' | 'psql'): Promise<{
+    databasePassword: string;
+    databaseParams: (connectionDatabase?: string, connectionUser?: string) => string[];
+    databaseVersion: string;
+    databaseMajorVersion: number;
+  }> {
     const { database } = this.configRepository.getEnv();
     const config = database.config;
 
     const isUrlConnection = config.connectionType === 'url';
 
-    const databaseParams = isUrlConnection
-      ? ['--dbname', config.url]
-      : [
-          '--username',
-          config.username,
-          '--host',
-          config.host,
-          '--port',
-          `${config.port}`,
-          '--database',
-          config.database,
-        ];
+    const databaseParams = (connectionDatabase?: string, connectionUser?: string) =>
+      (isUrlConnection
+        ? [cli === 'pg_dump' ? '' : '--dbname', config.url]
+        : [
+            '--username',
+            connectionUser ?? config.username,
+            '--host',
+            config.host,
+            '--port',
+            `${config.port}`,
+            cli === 'pg_dump' ? '' : cli === 'pg_dumpall' ? '--database' : '--dbname',
+            connectionDatabase ?? config.database,
+          ]
+      ).filter((item) => item.length);
 
-    databaseParams.push('--clean', '--if-exists');
+    const databaseName = isUrlConnection ? config.url.split('/')[3] : config.database;
+
     const databaseVersion = await this.databaseRepository.getPostgresVersion();
-    const backupFilePath = path.join(
-      StorageCore.getBaseFolder(StorageFolder.Backups),
-      `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}.sql.gz.tmp`,
-    );
     const databaseSemver = semver.coerce(databaseVersion);
     const databaseMajorVersion = databaseSemver?.major;
 
     if (!databaseMajorVersion || !databaseSemver || !semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) {
-      this.logger.error(`Database Backup Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
+      throw new Error(`Database Backup Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
+    }
+
+    const databasePassword = isUrlConnection ? new URL(config.url).password : config.password;
+
+    return {
+      databasePassword,
+      databaseParams,
+      databaseVersion,
+      databaseMajorVersion,
+    };
+  }
+
+  async createBackup(): Promise<JobStatus> {
+    this.logger.debug(`Database Backup Started`);
+
+    let params;
+    try {
+      params = await this.buildDatabaseParams('pg_dump');
+    } catch (error) {
+      this.logger.error((error as Error).message);
       return JobStatus.Failed;
     }
+
+    const { databasePassword, databaseParams, databaseMajorVersion, databaseVersion } = params;
+
+    const backupFilePath = path.join(
+      StorageCore.getBaseFolder(StorageFolder.Backups),
+      `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}.sql.gz.tmp`,
+    );
 
     this.logger.log(`Database Backup Starting. Database Version: ${databaseMajorVersion}`);
 
     try {
       await new Promise<void>((resolve, reject) => {
         const pgdump = this.processRepository.spawn(
-          `/usr/lib/postgresql/${databaseMajorVersion}/bin/pg_dumpall`,
-          databaseParams,
+          `/usr/lib/postgresql/${databaseMajorVersion}/bin/pg_dump`,
+          [...databaseParams(), '--clean', '--if-exists'],
           {
             env: {
               PATH: process.env.PATH,
-              PGPASSWORD: isUrlConnection ? new URL(config.url).password : config.password,
+              PGPASSWORD: databasePassword,
             },
           },
         );
@@ -128,7 +160,6 @@ export class BackupService extends BaseService {
         pgdump.stdout.pipe(gzip.stdin);
 
         const fileStream = this.storageRepository.createWriteStream(backupFilePath);
-
         gzip.stdout.pipe(fileStream);
 
         pgdump.on('error', (err) => {
@@ -182,8 +213,200 @@ export class BackupService extends BaseService {
       throw error;
     }
 
-    this.logger.log(`Database Backup Success`);
-    await this.cleanupDatabaseBackups();
     return JobStatus.Success;
+  }
+
+  async restoreBackup(filename: string): Promise<void> {
+    this.logger.debug(`Database Restore Started`);
+
+    try {
+      if (!this.isValidBackupName(filename)) {
+        // if we want to allow custom file names
+        // replace this with a check that we aren't
+        // traversing out of the backup directory
+        throw new Error('Invalid backup file format!');
+      }
+
+      const { databasePassword, databaseParams, databaseMajorVersion } =
+        await this.buildDatabaseParams('psql');
+
+      this.logger.log(`Dropping all connections to database and preparing for backup.`);
+
+      const superuserToken = Buffer.from(randomBytes(64)).toString('hex');
+
+      // DO $$
+      //         BEGIN
+      //           IF EXISTS (
+      //             SELECT FROM pg_catalog.pg_roles WHERE rolname = 'immich_backup_restore'
+      //           ) THEN
+      //             ALTER ROLE immich_backup_restore WITH PASSWORD '${superuserToken}';
+      //           ELSE
+      //             CREATE ROLE immich_backup_restore WITH LOGIN SUPERUSER PASSWORD '${superuserToken}';
+      //           END IF;
+      //         END
+      //         $$;
+
+      //         CREATE DATABASE immich_backup_restore;
+
+      const PREPARE_SQL = `
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = current_database()
+          AND pid <> pg_backend_pid();
+
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+
+        GRANT ALL ON SCHEMA public TO postgres;
+        GRANT ALL ON SCHEMA public TO public;
+      `;
+
+      await new Promise<void>((resolve, reject) => {
+        const psql = this.processRepository.spawn(
+          `/usr/lib/postgresql/${databaseMajorVersion}/bin/psql`,
+          databaseParams(),
+          // [...databaseParams('postgres'), '-c', `DROP DATABASE IF EXISTS ${databaseName};`],
+          {
+            env: {
+              PATH: process.env.PATH,
+              PGPASSWORD: databasePassword,
+            },
+          },
+        );
+
+        psql.stdin.write(PREPARE_SQL);
+        psql.stdin.end();
+
+        let psqlLogs = '';
+
+        psql.stderr.on('data', (data) => (psqlLogs += data));
+
+        // catch stdin error so we can read errors from psql
+        psql.stdin.on('error', (error) => {
+          if ((error as { code?: string })?.code !== 'EPIPE') {
+            throw error;
+          }
+        });
+
+        psql.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Prepare failed with code ${code}`);
+            reject(`Prepare failed with code ${code}`);
+            this.logger.error(psqlLogs);
+            return;
+          }
+          if (psqlLogs) {
+            this.logger.debug(`psql logs\n${psqlLogs}`);
+          }
+          resolve();
+        });
+      });
+
+      this.logger.log(`Database Restore Starting.`);
+
+      const backupFilePath = path.join(StorageCore.getBaseFolder(StorageFolder.Backups), filename);
+      await stat(backupFilePath); // => check file exists
+
+      const gzip = this.processRepository.spawn('gzip', ['-cd']);
+
+      const psql = this.processRepository.spawn(
+        `/usr/lib/postgresql/${databaseMajorVersion}/bin/psql`,
+        databaseParams(),
+        {
+          env: {
+            PATH: process.env.PATH,
+            PGPASSWORD: databasePassword,
+          },
+        },
+      );
+
+      gzip.stdout.pipe(psql.stdin);
+
+      const fileStream = await this.storageRepository.createReadStream(backupFilePath);
+      fileStream.stream.pipe(gzip.stdin);
+
+      await new Promise<void>((resolve, reject) => {
+        psql.on('error', (err) => {
+          this.logger.error(`Restore failed with error: ${err}`);
+          reject(err);
+        });
+
+        gzip.on('error', (err) => {
+          this.logger.error(`Gzip failed with error: ${err}`);
+          reject(err);
+        });
+
+        let psqlLogs = '';
+        let gzipLogs = '';
+
+        psql.stdout.on('data', (data) => console.info('' + data));
+        psql.stderr.on('data', (data) => console.error('' + data));
+
+        psql.stderr.on('data', (data) => (psqlLogs += data));
+        gzip.stderr.on('data', (data) => (gzipLogs += data));
+
+        // catch stdin error so we can read errors from psql
+        psql.stdin.on('error', (error) => {
+          if ((error as { code?: string })?.code !== 'EPIPE') {
+            throw error;
+          }
+        });
+
+        psql.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Restore failed with code ${code}`);
+            reject(`Restore failed with code ${code}`);
+            this.logger.error(psqlLogs);
+            return;
+          }
+          if (psqlLogs) {
+            this.logger.debug(`psql logs\n${psqlLogs}`);
+          }
+          this.logger.debug('psql exited with', code);
+          resolve();
+        });
+
+        gzip.on('exit', (code) => {
+          if (code !== 0) {
+            this.logger.error(`Gzip failed with code ${code}`);
+            reject(`Gzip failed with code ${code}`);
+            this.logger.error(gzipLogs);
+            return;
+          }
+
+          console.info('gzip is done!');
+          // psql.stdin.write('\\q\n');
+          // psql.stdin.end();
+          psql.stdin.end();
+        });
+      });
+    } catch (error) {
+      this.logger.error(`Database Restore Failure: ${error}`);
+      throw error;
+    }
+
+    this.eventRepository.emit('AppRestart');
+
+    this.logger.debug('db restore fin.');
+  }
+
+  async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
+    const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
+    const files = await this.storageRepository.readdir(backupsFolder);
+
+    return {
+      backups: files
+        .filter((name) => this.isValidBackupName(name))
+        .sort()
+        .toReversed(),
+      failedBackups: files.filter((file) => file.match(/immich-db-backup-.*\.sql\.gz\.tmp$/)),
+    };
+  }
+
+  private isValidBackupName(backup: string) {
+    const oldBackupStyle = backup.match(/immich-db-backup-\d+\.sql\.gz$/);
+    //immich-db-backup-20250729T114018-v1.136.0-pg14.17.sql.gz
+    const newBackupStyle = backup.match(/immich-db-backup-\d{8}T\d{6}-v.*-pg.*\.sql\.gz$/);
+    return oldBackupStyle || newBackupStyle;
   }
 }

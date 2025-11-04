@@ -21,7 +21,7 @@ class Workers {
   /**
    * Fail-safe in case anything dies during restart
    */
-  restarting = false;
+  restarting: number | undefined;
 
   constructor() {
     this.workers = {};
@@ -87,15 +87,29 @@ class Workers {
   onExit(name: ImmichWorker, exitCode: number | null) {
     // restart immich server
     if (exitCode === 7 || this.restarting) {
-      this.restarting = true;
+      this.restarting = setTimeout(
+        () =>
+          (Object.keys(this.workers) as ImmichWorker[]).map((key) => {
+            if (this.workers[key] instanceof ChildProcess) {
+              this.workers[key]!.kill('SIGTERM');
+            } else {
+              this.workers[key]!.terminate();
+            }
+
+            delete this.workers[key];
+            // timeout
+          }),
+        2e3,
+      ) as never as number;
 
       console.info(`${name} worker shutdown for restart`);
       delete this.workers[name];
 
       // once all workers shut down, bootstrap again
       if (Object.keys(this.workers).length === 0) {
+        clearTimeout(this.restarting);
+        this.restarting = undefined;
         void this.bootstrap();
-        this.restarting = false;
       }
 
       return;

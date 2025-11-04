@@ -263,6 +263,86 @@
         ]
       }
     },
+    "/admin/maintenance/backups/list": {
+      "get": {
+        "operationId": "listBackups",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "tags": [
+          "Maintenance (admin)"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "systemMetadata.update",
+        "description": "This endpoint is an admin-only route, and requires the `systemMetadata.update` permission."
+      }
+    },
+    "/admin/maintenance/backups/restore": {
+      "post": {
+        "operationId": "restoreBackup",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceRestoreBackupDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRestoreBackupResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "tags": [
+          "Maintenance (admin)"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "systemMetadata.update",
+        "description": "This endpoint is an admin-only route, and requires the `systemMetadata.update` permission."
+      }
+    },
     "/admin/maintenance/end": {
       "post": {
         "operationId": "endMaintenance",
@@ -12660,6 +12740,28 @@
         },
         "required": [
           "isMaintenanceMode"
+        ],
+        "type": "object"
+      },
+      "MaintenanceRestoreBackupDto": {
+        "properties": {
+          "backup": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "backup"
+        ],
+        "type": "object"
+      },
+      "MaintenanceRestoreBackupResponseDto": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
         ],
         "type": "object"
       },
