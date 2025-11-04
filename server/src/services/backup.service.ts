@@ -65,53 +65,121 @@ export class BackupService extends BaseService {
 
   @OnJob({ name: JobName.DatabaseBackup, queue: QueueName.BackupDatabase })
   async handleBackupDatabase(): Promise<JobStatus> {
-    this.logger.debug(`Database Backup Started`);
+    const status = await this.createBackup();
+    if (status !== JobStatus.Success) {
+      return status;
+    }
+
+    await this.cleanupDatabaseBackups();
+    return JobStatus.Success;
+  }
+
+  /**
+   * Build parameters for CLI use
+   * @param bin the CLI being invoked
+   * @throws if unsupported PostgreSQL version
+   * @returns parameters for CLI
+   */
+  private async buildPgArguments(bin: 'pg_dump' | 'pg_dumpall' | 'psql'): Promise<{
+    bin: string;
+    args: ({
+      database,
+      user,
+    }?: {
+      /**
+       * @deprecated
+       */
+      database?: string;
+      /**
+       * @deprecated
+       */
+      user?: string;
+    }) => string[];
+    databasePassword: string;
+    databaseIsSupported: boolean;
+    databaseVersion: string;
+    databaseMajorVersion?: number;
+  }> {
     const { database } = this.configRepository.getEnv();
     const config = database.config;
-
     const isUrlConnection = config.connectionType === 'url';
 
-    const databaseParams = isUrlConnection
-      ? ['--dbname', config.url]
-      : [
-          '--username',
-          config.username,
-          '--host',
-          config.host,
-          '--port',
-          `${config.port}`,
-          '--database',
-          config.database,
-        ];
-
-    databaseParams.push('--clean', '--if-exists');
     const databaseVersion = await this.databaseRepository.getPostgresVersion();
-    const backupFilePath = path.join(
-      StorageCore.getBaseFolder(StorageFolder.Backups),
-      `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}.sql.gz.tmp`,
-    );
     const databaseSemver = semver.coerce(databaseVersion);
     const databaseMajorVersion = databaseSemver?.major;
 
-    if (!databaseMajorVersion || !databaseSemver || !semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) {
+    return {
+      bin: `/usr/lib/postgresql/${databaseMajorVersion}/bin/${bin}`,
+      args({ database, user } = {}) {
+        const args: string[] = [];
+
+        if (isUrlConnection) {
+          if (bin !== 'pg_dump') {
+            args.push('--dbname');
+          }
+
+          args.push(config.url);
+          // nb. doesn't replace database/user
+        } else {
+          args.push('--username', user ?? config.username);
+          args.push('--host', config.host);
+          args.push('--port', config.port.toString());
+
+          switch (bin) {
+            case 'pg_dumpall':
+              args.push('--database');
+              break;
+            case 'psql':
+              args.push('--dbname');
+              break;
+          }
+
+          args.push(database ?? config.database);
+        }
+
+        switch (bin) {
+          case 'pg_dump':
+          case 'pg_dumpall':
+            args.push('--clean', '--if-exists');
+            break;
+        }
+
+        return args;
+      },
+      databasePassword: isUrlConnection ? new URL(config.url).password : config.password,
+      databaseIsSupported:
+        (databaseMajorVersion && databaseSemver && semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) === true,
+      databaseVersion,
+      databaseMajorVersion,
+    };
+  }
+
+  async createBackup(): Promise<JobStatus> {
+    this.logger.debug(`Database Backup Started`);
+
+    const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
+      await this.buildPgArguments('pg_dumpall');
+
+    if (!databaseIsSupported) {
       this.logger.error(`Database Backup Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
       return JobStatus.Failed;
     }
 
     this.logger.log(`Database Backup Starting. Database Version: ${databaseMajorVersion}`);
 
+    const backupFilePath = path.join(
+      StorageCore.getBaseFolder(StorageFolder.Backups),
+      `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}.sql.gz.tmp`,
+    );
+
     try {
       await new Promise<void>((resolve, reject) => {
-        const pgdump = this.processRepository.spawn(
-          `/usr/lib/postgresql/${databaseMajorVersion}/bin/pg_dumpall`,
-          databaseParams,
-          {
-            env: {
-              PATH: process.env.PATH,
-              PGPASSWORD: isUrlConnection ? new URL(config.url).password : config.password,
-            },
+        const pgdump = this.processRepository.spawn(bin, args(), {
+          env: {
+            PATH: process.env.PATH,
+            PGPASSWORD: databasePassword,
           },
-        );
+        });
 
         // NOTE: `--rsyncable` is only supported in GNU gzip
         const gzip = this.processRepository.spawn(`gzip`, ['--rsyncable']);
@@ -173,10 +241,13 @@ export class BackupService extends BaseService {
     }
 
     this.logger.log(`Database Backup Success`);
-    await this.cleanupDatabaseBackups();
     return JobStatus.Success;
   }
 
+  /**
+   * Get a list of all backups on disk
+   * @returns Successful and failed backups
+   */
   async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
     const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
     const files = await this.storageRepository.readdir(backupsFolder);
@@ -190,6 +261,11 @@ export class BackupService extends BaseService {
     };
   }
 
+  /**
+   * Check whether the given file appears to be a valid backup we can restore from
+   * @param backup Filename
+   * @returns Whether it is valid
+   */
   private isValidBackupName(backup: string) {
     const oldBackupStyle = backup.match(/immich-db-backup-\d+\.sql\.gz$/);
     //immich-db-backup-20250729T114018-v1.136.0-pg14.17.sql.gz
