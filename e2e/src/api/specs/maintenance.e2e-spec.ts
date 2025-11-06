@@ -26,7 +26,7 @@ describe('/admin/maintenance', () => {
 
     describe('POST /login', async () => {
       it('should not work out of maintenance mode', async () => {
-        const { status, body } = await request(app).post('/admin/maintenance/login').send({ token: '' });
+        const { status, body } = await request(app).post('/admin/maintenance/login').send({ token: 'token' });
         expect(status).toBe(400);
         expect(body).toEqual(errorDto.badRequest('Not in maintenance mode'));
       });
@@ -41,8 +41,10 @@ describe('/admin/maintenance', () => {
     });
   });
 
-  describe.sequential('entering maintenance', () => {
-    describe('POST /start', () => {
+  describe.sequential('maintenance', () => {
+    let cookie: string | undefined;
+
+    describe.sequential('POST /start', () => {
       it('should require authentication', async () => {
         const { status, body } = await request(app).post('/admin/maintenance/start').send();
         expect(status).toBe(401);
@@ -64,10 +66,12 @@ describe('/admin/maintenance', () => {
           .set('Authorization', `Bearer ${admin.accessToken}`)
           .send();
 
-        expect(status).toBe(200);
+        expect(status).toBe(201);
         expect(body).toEqual({
           isMaintenanceMode: true,
         });
+
+        cookie = headers.Cookie;
 
         await expect
           .poll(
@@ -83,7 +87,29 @@ describe('/admin/maintenance', () => {
           .toBeTruthy();
       });
     });
-  });
 
-  describe.sequential('in maintenance', () => {});
+    describe.sequential('POST /end', () => {
+      it('should exit maintenance mode', async () => {
+        const { status, body } = await request(app).post('/admin/maintenance/end').set('Set-Cookie', cookie!).send();
+
+        expect(status).toBe(201);
+        expect(body).toEqual({
+          isMaintenanceMode: false,
+        });
+
+        await expect
+          .poll(
+            async () => {
+              const { body } = await request(app).get('/server/config');
+              return body.maintenanceMode;
+            },
+            {
+              interval: 1e3,
+              timeout: 5e3,
+            },
+          )
+          .toBeFalsy();
+      });
+    });
+  });
 });
