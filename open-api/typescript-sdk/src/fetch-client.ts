@@ -40,8 +40,11 @@ export type ActivityStatisticsResponseDto = {
     comments: number;
     likes: number;
 };
-export type MaintenanceModeResponseDto = {
-    isMaintenanceMode: boolean;
+export type MaintenanceLoginDto = {
+    token?: string;
+};
+export type MaintenanceAuthDto = {
+    username: string;
 };
 export type NotificationCreateDto = {
     data?: object;
@@ -1753,16 +1756,8 @@ export function unlinkAllOAuthAccountsAdmin(opts?: Oazapfts.RequestOpts) {
         method: "POST"
     }));
 }
-export function getMaintenanceMode(opts?: Oazapfts.RequestOpts) {
-    return oazapfts.ok(oazapfts.fetchJson<{
-        status: 200;
-        data: MaintenanceModeResponseDto;
-    }>("/admin/maintenance", {
-        ...opts
-    }));
-}
 /**
- * This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+ * This endpoint is an admin-only route, and requires the `maintenance` permission.
  */
 export function endMaintenance(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/end", {
@@ -1770,8 +1765,20 @@ export function endMaintenance(opts?: Oazapfts.RequestOpts) {
         method: "POST"
     }));
 }
+export function maintenanceLogin({ maintenanceLoginDto }: {
+    maintenanceLoginDto: MaintenanceLoginDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 201;
+        data: MaintenanceAuthDto;
+    }>("/admin/maintenance/login", oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: maintenanceLoginDto
+    })));
+}
 /**
- * This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+ * This endpoint is an admin-only route, and requires the `maintenance` permission.
  */
 export function startMaintenance(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/start", {
@@ -4878,6 +4885,7 @@ export enum Permission {
     LibraryStatistics = "library.statistics",
     TimelineRead = "timeline.read",
     TimelineDownload = "timeline.download",
+    Maintenance = "maintenance",
     MemoryCreate = "memory.create",
     MemoryRead = "memory.read",
     MemoryUpdate = "memory.update",

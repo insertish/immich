@@ -1,13 +1,15 @@
-import { NestFactory } from '@nestjs/core';
+import { Kysely } from 'kysely';
 import { CommandFactory } from 'nest-commander';
 import { ChildProcess, fork } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { ApiModule, ImmichAdminModule } from 'src/app.module';
-import { ImmichWorker, LogLevel } from 'src/enum';
+import { PostgresError } from 'postgres';
+import { ImmichAdminModule } from 'src/app.module';
+import { ExitCode, ImmichWorker, LogLevel, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
-import { MaintenanceService } from 'src/services/maintenance.service';
+import { type DB } from 'src/schema';
+import { getKyselyConfig } from 'src/utils/database';
 
 /**
  * Manages worker lifecycle
@@ -31,7 +33,7 @@ class Workers {
    * Boot all enabled workers
    */
   async bootstrap() {
-    const { isMaintenanceMode } = await this.getConfig();
+    const isMaintenanceMode = await this.isMaintenanceMode();
     const { workers } = new ConfigRepository().getEnv();
 
     if (isMaintenanceMode) {
@@ -47,13 +49,24 @@ class Workers {
    * Initialise a short-lived Nest application to build configuration
    * @returns System configuration
    */
-  private async getConfig(): Promise<{ isMaintenanceMode: boolean }> {
-    const app = await NestFactory.create(ApiModule);
-    const metadataRepository = app.get(SystemMetadataRepository);
+  private async isMaintenanceMode(): Promise<boolean> {
+    const { database } = new ConfigRepository().getEnv();
+    const kysely = new Kysely<DB>(getKyselyConfig(database.config));
+    const systemMetadataRepository = new SystemMetadataRepository(kysely);
 
-    await app.close();
+    try {
+      const value = await systemMetadataRepository.get(SystemMetadataKey.MaintenanceMode);
+      return value?.isMaintenanceMode || false;
+    } catch (error) {
+      // Table doesn't exist (migrations haven't run yet)
+      if (error instanceof PostgresError && error.code === '42P01') {
+        return false;
+      }
 
-    return await MaintenanceService.getMaintenanceModeWith(metadataRepository);
+      throw error;
+    } finally {
+      await kysely.destroy();
+    }
   }
 
   /**
@@ -86,7 +99,7 @@ class Workers {
 
   onExit(name: ImmichWorker, exitCode: number | null) {
     // restart immich server
-    if (exitCode === 7 || this.restarting) {
+    if (exitCode === ExitCode.AppRestart || this.restarting) {
       this.restarting = true;
 
       console.info(`${name} worker shutdown for restart`);
@@ -126,6 +139,7 @@ function main() {
   if (immichApp === 'immich-admin') {
     process.title = 'immich_admin_cli';
     process.env.IMMICH_LOG_LEVEL = LogLevel.Warn;
+
     return CommandFactory.run(ImmichAdminModule);
   }
 

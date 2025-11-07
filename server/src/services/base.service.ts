@@ -25,6 +25,7 @@ import { JobRepository } from 'src/repositories/job.repository';
 import { LibraryRepository } from 'src/repositories/library.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { MachineLearningRepository } from 'src/repositories/machine-learning.repository';
+import { MaintenanceRepository } from 'src/repositories/maintenance.repository';
 import { MapRepository } from 'src/repositories/map.repository';
 import { MediaRepository } from 'src/repositories/media.repository';
 import { MemoryRepository } from 'src/repositories/memory.repository';
@@ -78,6 +79,7 @@ export const BASE_SERVICE_DEPENDENCIES = [
   JobRepository,
   LibraryRepository,
   MachineLearningRepository,
+  MaintenanceRepository,
   MapRepository,
   MediaRepository,
   MemoryRepository,
@@ -132,6 +134,7 @@ export class BaseService {
     protected jobRepository: JobRepository,
     protected libraryRepository: LibraryRepository,
     protected machineLearningRepository: MachineLearningRepository,
+    protected maintenanceRepository: MaintenanceRepository,
     protected mapRepository: MapRepository,
     protected mediaRepository: MediaRepository,
     protected memoryRepository: MemoryRepository,

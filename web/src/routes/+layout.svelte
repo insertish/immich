@@ -7,6 +7,7 @@
   import AppleHeader from '$lib/components/shared-components/apple-header.svelte';
   import NavigationLoadingBar from '$lib/components/shared-components/navigation-loading-bar.svelte';
   import UploadPanel from '$lib/components/shared-components/upload-panel.svelte';
+  import { AppRoute } from '$lib/constants';
   import { eventManager } from '$lib/managers/event-manager.svelte';
   import ServerRestartingModal from '$lib/modals/ServerRestartingModal.svelte';
   import VersionAnnouncementModal from '$lib/modals/VersionAnnouncementModal.svelte';
@@ -19,6 +20,7 @@
     type ReleaseEvent,
   } from '$lib/stores/websocket';
   import { copyToClipboard, getReleaseType } from '$lib/utils';
+  import { maintenanceShouldRedirect } from '$lib/utils/maintenance';
   import { isAssetViewerRoute } from '$lib/utils/navigation';
   import type { ServerVersionResponseDto } from '@immich/sdk';
   import { modalManager, setTranslations } from '@immich/ui';
@@ -72,7 +74,7 @@
     showNavigationLoadingBar = false;
   });
   run(() => {
-    if ($user) {
+    if ($user || page.url.pathname.startsWith(AppRoute.MAINTENANCE)) {
       openWebsocketConnection();
     } else {
       closeWebsocketConnection();
@@ -106,20 +108,26 @@
 
   $effect(() => void handleRelease($release));
 
-  const handleRestart = async (isRestarting: boolean) => {
+  serverRestarting.subscribe((isRestarting) => {
     if (!isRestarting) {
       return;
     }
 
-    try {
-      serverRestarting.set(false);
-      await modalManager.show(ServerRestartingModal, {});
-    } catch (error) {
-      console.error('Error [ServerRestartBox]:', error);
-    }
-  };
+    if (maintenanceShouldRedirect(isRestarting.isMaintenanceMode, location)) {
+      modalManager.show(ServerRestartingModal, {}).catch((error) => console.error('Error [ServerRestartBox]:', error));
 
-  $effect(() => void handleRestart($serverRestarting));
+      // we will be disconnected momentarily
+      // wait for reconnect then reload
+      let waiting = false;
+      websocketStore.connected.subscribe((connected) => {
+        if (!connected) {
+          waiting = true;
+        } else if (connected && waiting) {
+          location.reload();
+        }
+      });
+    }
+  });
 </script>
 
 <svelte:head>

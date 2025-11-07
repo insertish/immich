@@ -3,7 +3,7 @@ import { CliService } from 'src/services/cli.service';
 
 @Command({
   name: 'enable-maintenance-mode',
-  description: 'Enable maintenance mode',
+  description: 'Enable maintenance mode or regenerate the maintenance token',
 })
 export class EnableMaintenanceModeCommand extends CommandRunner {
   constructor(private service: CliService) {
@@ -11,8 +11,10 @@ export class EnableMaintenanceModeCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
-    await this.service.enableMaintenanceMode();
-    console.log("Maintenance mode has been enabled.\nThis change won't automatically propagate.");
+    const { authUrl, alreadyEnabled } = await this.service.enableMaintenanceMode();
+
+    console.info(alreadyEnabled ? 'The server is already in maintenance mode!' : 'Maintenance mode has been enabled.');
+    console.info(`\nLog in using the following URL:\n${authUrl}`);
   }
 }
 
@@ -26,7 +28,10 @@ export class DisableMaintenanceModeCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
-    await this.service.disableMaintenanceMode();
-    console.log("Maintenance mode has been disabled.\nThis change won't automatically propagate.");
+    const { alreadyDisabled } = await this.service.disableMaintenanceMode();
+
+    console.log(
+      alreadyDisabled ? 'The server is already out of maintenance mode!' : 'Maintenance mode has been disabled.',
+    );
   }
 }

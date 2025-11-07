@@ -16,7 +16,7 @@ class MaintenanceAdminApi {
 
   final ApiClient apiClient;
 
-  /// This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   ///
   /// Note: This method returns the HTTP [Response].
   Future<Response> endMaintenanceWithHttpInfo() async {
@@ -44,7 +44,7 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   Future<void> endMaintenance() async {
     final response = await endMaintenanceWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
@@ -52,24 +52,27 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// Performs an HTTP 'GET /admin/maintenance' operation and returns the [Response].
-  Future<Response> getMaintenanceModeWithHttpInfo() async {
+  /// Performs an HTTP 'POST /admin/maintenance/login' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [MaintenanceLoginDto] maintenanceLoginDto (required):
+  Future<Response> maintenanceLoginWithHttpInfo(MaintenanceLoginDto maintenanceLoginDto,) async {
     // ignore: prefer_const_declarations
-    final apiPath = r'/admin/maintenance';
+    final apiPath = r'/admin/maintenance/login';
 
     // ignore: prefer_final_locals
-    Object? postBody;
+    Object? postBody = maintenanceLoginDto;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    const contentTypes = <String>[];
+    const contentTypes = <String>['application/json'];
 
 
     return apiClient.invokeAPI(
       apiPath,
-      'GET',
+      'POST',
       queryParams,
       postBody,
       headerParams,
@@ -78,8 +81,11 @@ class MaintenanceAdminApi {
     );
   }
 
-  Future<MaintenanceModeResponseDto?> getMaintenanceMode() async {
-    final response = await getMaintenanceModeWithHttpInfo();
+  /// Parameters:
+  ///
+  /// * [MaintenanceLoginDto] maintenanceLoginDto (required):
+  Future<MaintenanceAuthDto?> maintenanceLogin(MaintenanceLoginDto maintenanceLoginDto,) async {
+    final response = await maintenanceLoginWithHttpInfo(maintenanceLoginDto,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -87,13 +93,13 @@ class MaintenanceAdminApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MaintenanceModeResponseDto',) as MaintenanceModeResponseDto;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MaintenanceAuthDto',) as MaintenanceAuthDto;
     
     }
     return null;
   }
 
-  /// This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   ///
   /// Note: This method returns the HTTP [Response].
   Future<Response> startMaintenanceWithHttpInfo() async {
@@ -121,7 +127,7 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `systemMetadata.update` permission.
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   Future<void> startMaintenance() async {
     final response = await startMaintenanceWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {

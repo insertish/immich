@@ -1,75 +1,84 @@
-import { BadRequestException, INestApplication, Injectable } from '@nestjs/common';
-import { PostgresError } from 'postgres';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { SignJWT } from 'jose';
+import { randomBytes } from 'node:crypto';
 import { OnEvent } from 'src/decorators';
-import { MaintenanceModeResponseDto } from 'src/dtos/maintenance.dto';
+import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { SystemMetadataKey } from 'src/enum';
-import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
 import { BaseService } from 'src/services/base.service';
+import { MaintenanceModeState } from 'src/types';
+import { getExternalDomain } from 'src/utils/misc';
 
+/**
+ * This service is available outside of maintenance mode to manage maintenance mode
+ */
 @Injectable()
 export class MaintenanceService extends BaseService {
-  nestApplication: INestApplication | undefined;
-
-  static async getMaintenanceModeWith(
-    systemMetadataRepository: SystemMetadataRepository,
-  ): Promise<{ isMaintenanceMode: boolean }> {
-    try {
-      const value = await systemMetadataRepository.get(SystemMetadataKey.MaintenanceMode);
-
-      return {
-        isMaintenanceMode: false,
-        ...value,
-      };
-    } catch (error) {
-      // Table doesn't exist (migrations haven't run yet)
-      if (error instanceof PostgresError && error.code === '42P01') {
-        return { isMaintenanceMode: false };
-      }
-
-      throw error;
-    }
+  getMaintenanceMode(): Promise<MaintenanceModeState> {
+    return this.systemMetadataRepository
+      .get(SystemMetadataKey.MaintenanceMode)
+      .then((state) => state ?? { isMaintenanceMode: false });
   }
 
-  getMaintenanceMode(): Promise<MaintenanceModeResponseDto> {
-    return MaintenanceService.getMaintenanceModeWith(this.systemMetadataRepository);
+  login(): MaintenanceAuthDto {
+    throw new BadRequestException('Not in maintenance mode');
   }
 
-  private async setMaintenanceMode(isMaintenanceMode: boolean) {
-    const state = { isMaintenanceMode };
-    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, state);
-    this.websocketRepository.clientBroadcast('on_server_restart', state);
-    this.websocketRepository.serverSend('AppRestart');
-    await this.eventRepository.emit('AppRestart');
-  }
-
-  async startMaintenance(): Promise<void> {
+  async startMaintenance(): Promise<{ secret: string }> {
     const { isMaintenanceMode } = await this.getMaintenanceMode();
     if (isMaintenanceMode) {
       throw new BadRequestException('Already in maintenance mode');
     }
 
-    await this.setMaintenanceMode(true);
+    const secret = MaintenanceService.generateSecret();
+    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, { isMaintenanceMode: true, secret });
+    await this.eventRepository.emit('AppRestart', { isMaintenanceMode: true });
+
+    return { secret };
   }
 
-  async endMaintenance(): Promise<void> {
-    const { isMaintenanceMode } = await this.getMaintenanceMode();
-    if (!isMaintenanceMode) {
-      throw new BadRequestException('Not in maintenance mode');
-    }
-
-    await this.setMaintenanceMode(false);
+  endMaintenance(): void {
+    throw new BadRequestException('Not in maintenance mode');
   }
 
   @OnEvent({ name: 'AppRestart', server: true })
-  onRestart() {
-    /* eslint-disable unicorn/no-process-exit */
-    // we need to specify the exact exit code
-    void this.nestApplication
-      ?.close() // attempt graceful shutdown
-      .then(() => process.exit(7)); // then signal restart
+  onRestart(): void {
+    this.maintenanceRepository.exitApp();
+  }
 
-    // in some exceptional circumstances, close() may hang
-    setTimeout(() => process.exit(7), 5000);
-    /* eslint-enable unicorn/no-process-exit */
+  async createLoginUrl(auth: MaintenanceAuthDto, secret?: string): Promise<string> {
+    const { server } = await this.getConfig({ withCache: true });
+    const baseUrl = getExternalDomain(server);
+
+    secret ??= await this.getMaintenanceMode().then((state) => {
+      if (!state.isMaintenanceMode) {
+        throw new Error('Not in maintenance mode');
+      }
+
+      return state.secret;
+    });
+
+    return await MaintenanceService.createLoginUrl(baseUrl, auth, secret!);
+  }
+
+  createJwt(secret: string, data: MaintenanceAuthDto): Promise<string> {
+    return MaintenanceService.createJwt(secret, data);
+  }
+
+  static async createLoginUrl(baseUrl: string, auth: MaintenanceAuthDto, secret: string): Promise<string> {
+    return `${baseUrl}/maintenance?token=${await MaintenanceService.createJwt(secret!, auth)}`;
+  }
+
+  static async createJwt(secret: string, data: MaintenanceAuthDto): Promise<string> {
+    const alg = 'HS256';
+
+    return await new SignJWT({ ...data })
+      .setProtectedHeader({ alg })
+      .setIssuedAt()
+      .setExpirationTime('4h')
+      .sign(new TextEncoder().encode(secret));
+  }
+
+  static generateSecret(): string {
+    return randomBytes(64).toString('hex');
   }
 }

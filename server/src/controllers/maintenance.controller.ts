@@ -1,8 +1,15 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { MaintenanceRestoreBackupDto, MaintenanceRestoreBackupResponseDto } from 'src/dtos/maintenance.dto';
-import { Permission } from 'src/enum';
-import { Authenticated } from 'src/middleware/auth.guard';
+import { Response } from 'express';
+import { AuthDto } from 'src/dtos/auth.dto';
+import {
+  MaintenanceAuthDto,
+  MaintenanceLoginDto,
+  MaintenanceRestoreBackupDto,
+  MaintenanceRestoreBackupResponseDto,
+} from 'src/dtos/maintenance.dto';
+import { ImmichCookie, Permission } from 'src/enum';
+import { Auth, Authenticated } from 'src/middleware/auth.guard';
 import { BackupService } from 'src/services/backup.service';
 import { MaintenanceService } from 'src/services/maintenance.service';
 
@@ -14,31 +21,36 @@ export class MaintenanceController {
     private backupService: BackupService,
   ) {}
 
-  @Get()
-  getMaintenanceMode() {
-    return this.service.getMaintenanceMode();
+  @Post('login')
+  maintenanceLogin(@Body() _dto: MaintenanceLoginDto): MaintenanceAuthDto {
+    return this.service.login();
   }
 
   @Post('start')
-  @Authenticated({ permission: Permission.SystemMetadataUpdate, admin: true })
-  startMaintenance() {
-    return this.service.startMaintenance();
+  @Authenticated({ permission: Permission.Maintenance, admin: true })
+  async startMaintenance(@Auth() auth: AuthDto, @Res({ passthrough: true }) response: Response): Promise<void> {
+    const { secret } = await this.service.startMaintenance();
+    const jwt = await this.service.createJwt(secret, {
+      username: auth.user.name,
+    });
+
+    response.cookie(ImmichCookie.MaintenanceToken, jwt);
   }
 
   @Post('end')
-  @Authenticated({ permission: Permission.SystemMetadataUpdate, admin: true })
-  endMaintenance() {
-    return this.service.endMaintenance();
+  @Authenticated({ permission: Permission.Maintenance, admin: true })
+  endMaintenance(): void {
+    this.service.endMaintenance();
   }
 
   @Get('backups/list')
-  // todo: auth
+  @Authenticated({ permission: Permission.Maintenance, admin: true })
   listBackups() {
     return this.backupService.listBackups();
   }
 
   @Post('backups/restore')
-  // todo: auth
+  @Authenticated({ permission: Permission.Maintenance, admin: true })
   async restoreBackup(@Body() dto: MaintenanceRestoreBackupDto): Promise<MaintenanceRestoreBackupResponseDto> {
     try {
       await this.backupService.restoreBackup(dto.backup);
