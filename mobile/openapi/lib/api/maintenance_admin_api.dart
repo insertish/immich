@@ -52,6 +52,50 @@ class MaintenanceAdminApi {
     }
   }
 
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  Future<Response> listBackupsWithHttpInfo() async {
+    // ignore: prefer_const_declarations
+    final apiPath = r'/admin/maintenance/backups/list';
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      apiPath,
+      'GET',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  Future<Object?> listBackups() async {
+    final response = await listBackupsWithHttpInfo();
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+    
+    }
+    return null;
+  }
+
   /// Performs an HTTP 'POST /admin/maintenance/login' operation and returns the [Response].
   /// Parameters:
   ///
@@ -94,6 +138,58 @@ class MaintenanceAdminApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MaintenanceAuthDto',) as MaintenanceAuthDto;
+    
+    }
+    return null;
+  }
+
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [MaintenanceRestoreBackupDto] maintenanceRestoreBackupDto (required):
+  Future<Response> restoreBackupWithHttpInfo(MaintenanceRestoreBackupDto maintenanceRestoreBackupDto,) async {
+    // ignore: prefer_const_declarations
+    final apiPath = r'/admin/maintenance/backups/restore';
+
+    // ignore: prefer_final_locals
+    Object? postBody = maintenanceRestoreBackupDto;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json'];
+
+
+    return apiClient.invokeAPI(
+      apiPath,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  ///
+  /// Parameters:
+  ///
+  /// * [MaintenanceRestoreBackupDto] maintenanceRestoreBackupDto (required):
+  Future<MaintenanceRestoreBackupResponseDto?> restoreBackup(MaintenanceRestoreBackupDto maintenanceRestoreBackupDto,) async {
+    final response = await restoreBackupWithHttpInfo(maintenanceRestoreBackupDto,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MaintenanceRestoreBackupResponseDto',) as MaintenanceRestoreBackupResponseDto;
     
     }
     return null;

@@ -242,27 +242,6 @@
         "description": "This endpoint is an admin-only route, and requires the `adminAuth.unlinkAll` permission."
       }
     },
-    "/admin/maintenance": {
-      "get": {
-        "operationId": "getMaintenanceMode",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MaintenanceModeResponseDto"
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Maintenance (admin)"
-        ]
-      }
-    },
     "/admin/maintenance/backups/list": {
       "get": {
         "operationId": "listBackups",
@@ -279,9 +258,23 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
         "tags": [
           "Maintenance (admin)"
-        ]
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "maintenance",
+        "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
     "/admin/maintenance/backups/restore": {
@@ -310,9 +303,23 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
         "tags": [
           "Maintenance (admin)"
-        ]
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "maintenance",
+        "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
     "/admin/maintenance/end": {
@@ -339,8 +346,39 @@
           "Maintenance (admin)"
         ],
         "x-immich-admin-only": true,
-        "x-immich-permission": "systemMetadata.update",
-        "description": "This endpoint is an admin-only route, and requires the `systemMetadata.update` permission."
+        "x-immich-permission": "maintenance",
+        "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
+      }
+    },
+    "/admin/maintenance/login": {
+      "post": {
+        "operationId": "maintenanceLogin",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceLoginDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceAuthDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Maintenance (admin)"
+        ]
       }
     },
     "/admin/maintenance/start": {
@@ -367,8 +405,8 @@
           "Maintenance (admin)"
         ],
         "x-immich-admin-only": true,
-        "x-immich-permission": "systemMetadata.update",
-        "description": "This endpoint is an admin-only route, and requires the `systemMetadata.update` permission."
+        "x-immich-permission": "maintenance",
+        "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
     "/admin/notifications": {
@@ -12704,15 +12742,23 @@
         ],
         "type": "object"
       },
-      "MaintenanceModeResponseDto": {
+      "MaintenanceAuthDto": {
         "properties": {
-          "isMaintenanceMode": {
-            "type": "boolean"
+          "username": {
+            "type": "string"
           }
         },
         "required": [
-          "isMaintenanceMode"
+          "username"
         ],
+        "type": "object"
+      },
+      "MaintenanceLoginDto": {
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "MaintenanceRestoreBackupDto": {
@@ -13668,6 +13714,7 @@
           "library.statistics",
           "timeline.read",
           "timeline.download",
+          "maintenance",
           "memory.create",
           "memory.read",
           "memory.update",

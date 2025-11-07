@@ -119,17 +119,17 @@ export class BackupService extends BaseService {
           args.push(config.url);
           // nb. doesn't replace database/user
         } else {
-          args.push('--username', user ?? config.username);
-          args.push('--host', config.host);
-          args.push('--port', config.port.toString());
+          args.push('--username', user ?? config.username, '--host', config.host, '--port', config.port.toString());
 
           switch (bin) {
-            case 'pg_dumpall':
+            case 'pg_dumpall': {
               args.push('--database');
               break;
-            case 'psql':
+            }
+            case 'psql': {
               args.push('--dbname');
               break;
+            }
           }
 
           args.push(database ?? config.database);
@@ -137,9 +137,10 @@ export class BackupService extends BaseService {
 
         switch (bin) {
           case 'pg_dump':
-          case 'pg_dumpall':
+          case 'pg_dumpall': {
             args.push('--clean', '--if-exists');
             break;
+          }
         }
 
         return args;
@@ -257,8 +258,7 @@ export class BackupService extends BaseService {
         throw new Error('Invalid backup file format!');
       }
 
-      const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
-        await this.buildPgArguments('psql');
+      const { bin, args, databasePassword, databaseIsSupported, databaseVersion } = await this.buildPgArguments('psql');
 
       if (!databaseIsSupported) {
         this.logger.error(`Database Restore Failure: Unsupported PostgreSQL version: ${databaseVersion}`);

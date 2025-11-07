@@ -10,11 +10,11 @@ import { ConfigRepository } from 'src/repositories/config.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { MaintenanceWorkerRepository } from 'src/repositories/maintenance-worker.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
-import { type ApiService } from 'src/services/api.service';
-import { type BaseService } from 'src/services/base.service';
+import { type ApiService as _ApiService } from 'src/services/api.service';
+import { type BaseService as _BaseService } from 'src/services/base.service';
 import { MaintenanceService } from 'src/services/maintenance.service';
-import { type ServerService } from 'src/services/server.service';
-import { type StorageService } from 'src/services/storage.service';
+import { type ServerService as _ServerService } from 'src/services/server.service';
+import { type StorageService as _StorageService } from 'src/services/storage.service';
 import { MaintenanceModeState } from 'src/types';
 import { getConfig } from 'src/utils/config';
 import { getExternalDomain } from 'src/utils/misc';
@@ -34,7 +34,7 @@ export class MaintenanceWorkerService {
   }
 
   /**
-   * {@link BaseService.configRepos}
+   * {@link _BaseService.configRepos}
    */
   private get configRepos() {
     return {
@@ -45,14 +45,14 @@ export class MaintenanceWorkerService {
   }
 
   /**
-   * {@link BaseService.prototype.getConfig}
+   * {@link _BaseService.prototype.getConfig}
    */
   private getConfig(options: { withCache: boolean }) {
     return getConfig(this.configRepos, options);
   }
 
   /**
-   * {@link ServerService.getSystemConfig}
+   * {@link _ServerService.getSystemConfig}
    */
   async getSystemConfig() {
     const config = await this.getConfig({ withCache: false });
@@ -73,7 +73,7 @@ export class MaintenanceWorkerService {
   }
 
   /**
-   * {@link ApiService.ssr}
+   * {@link _ApiService.ssr}
    */
   ssr(excludePaths: string[]) {
     const { resourcePaths } = this.configRepository.getEnv();
@@ -106,7 +106,7 @@ export class MaintenanceWorkerService {
   }
 
   /**
-   * {@link StorageService.detectMediaLocation}
+   * {@link _StorageService.detectMediaLocation}
    */
   detectMediaLocation(): string {
     const envData = this.configRepository.getEnv();
