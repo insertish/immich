@@ -390,8 +390,7 @@ export class BackupService extends BaseService {
       throw error;
     }
 
-    this.websocketRepository.serverSend('AppRestart');
-    this.eventRepository.emit('AppRestart');
+    // todo: trigger restart
 
     this.logger.log(`Database Restore Success`);
   }
