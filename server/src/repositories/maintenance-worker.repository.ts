@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { existsSync } from 'node:fs';
 import { Server, Socket } from 'socket.io';
 import { AppRestartEvent } from 'src/repositories/event.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
@@ -55,5 +56,9 @@ export class MaintenanceWorkerRepository implements OnGatewayConnection, OnGatew
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Websocket Disconnect: ${client.id}`);
+  }
+
+  existsSync(filepath: string) {
+    return existsSync(filepath);
   }
 }

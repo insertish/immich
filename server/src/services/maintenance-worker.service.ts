@@ -14,6 +14,7 @@ import { type ApiService } from 'src/services/api.service';
 import { type BaseService } from 'src/services/base.service';
 import { MaintenanceService } from 'src/services/maintenance.service';
 import { type ServerService } from 'src/services/server.service';
+import { type StorageService } from 'src/services/storage.service';
 import { MaintenanceModeState } from 'src/types';
 import { getConfig } from 'src/utils/config';
 import { getExternalDomain } from 'src/utils/misc';
@@ -102,6 +103,32 @@ export class MaintenanceWorkerService {
 
       res.status(200).type('text/html').header('Cache-Control', 'no-store').send(index);
     };
+  }
+
+  /**
+   * {@link StorageService.detectMediaLocation}
+   */
+  detectMediaLocation(): string {
+    const envData = this.configRepository.getEnv();
+    if (envData.storage.mediaLocation) {
+      return envData.storage.mediaLocation;
+    }
+
+    const targets: string[] = [];
+    const candidates = ['/data', '/usr/src/app/upload'];
+
+    for (const candidate of candidates) {
+      const exists = this.maintenanceWorkerRepository.existsSync(candidate);
+      if (exists) {
+        targets.push(candidate);
+      }
+    }
+
+    if (targets.length === 1) {
+      return targets[0];
+    }
+
+    return '/usr/src/app/upload';
   }
 
   private async secret(): Promise<string> {
