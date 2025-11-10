@@ -40,6 +40,9 @@ export type ActivityStatisticsResponseDto = {
     comments: number;
     likes: number;
 };
+export type MaintenanceRestoreBackupDto = {
+    backup: string;
+};
 export type MaintenanceLoginDto = {
     token?: string;
 };
@@ -1755,6 +1758,29 @@ export function unlinkAllOAuthAccountsAdmin(opts?: Oazapfts.RequestOpts) {
         ...opts,
         method: "POST"
     }));
+}
+/**
+ * This endpoint is an admin-only route, and requires the `maintenance` permission.
+ */
+export function listBackups(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: object;
+    }>("/admin/maintenance/backups/list", {
+        ...opts
+    }));
+}
+/**
+ * This endpoint is an admin-only route, and requires the `maintenance` permission.
+ */
+export function restoreBackup({ maintenanceRestoreBackupDto }: {
+    maintenanceRestoreBackupDto: MaintenanceRestoreBackupDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/backups/restore", oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: maintenanceRestoreBackupDto
+    })));
 }
 /**
  * This endpoint is an admin-only route, and requires the `maintenance` permission.

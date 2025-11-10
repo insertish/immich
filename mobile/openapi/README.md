@@ -408,7 +408,6 @@ Class | Method | HTTP request | Description
  - [MaintenanceAuthDto](doc//MaintenanceAuthDto.md)
  - [MaintenanceLoginDto](doc//MaintenanceLoginDto.md)
  - [MaintenanceRestoreBackupDto](doc//MaintenanceRestoreBackupDto.md)
- - [MaintenanceRestoreBackupResponseDto](doc//MaintenanceRestoreBackupResponseDto.md)
  - [ManualJobName](doc//ManualJobName.md)
  - [MapMarkerResponseDto](doc//MapMarkerResponseDto.md)
  - [MapReverseGeocodeResponseDto](doc//MapReverseGeocodeResponseDto.md)
