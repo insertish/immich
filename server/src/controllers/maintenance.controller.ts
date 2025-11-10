@@ -2,24 +2,15 @@ import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
-import {
-  MaintenanceAuthDto,
-  MaintenanceLoginDto,
-  MaintenanceRestoreBackupDto,
-  MaintenanceRestoreBackupResponseDto,
-} from 'src/dtos/maintenance.dto';
+import { MaintenanceAuthDto, MaintenanceLoginDto, MaintenanceRestoreBackupDto } from 'src/dtos/maintenance.dto';
 import { ImmichCookie, Permission } from 'src/enum';
 import { Auth, Authenticated } from 'src/middleware/auth.guard';
-import { BackupService } from 'src/services/backup.service';
 import { MaintenanceService } from 'src/services/maintenance.service';
 
 @ApiTags('Maintenance (admin)')
 @Controller('admin/maintenance')
 export class MaintenanceController {
-  constructor(
-    private service: MaintenanceService,
-    private backupService: BackupService,
-  ) {}
+  constructor(private service: MaintenanceService) {}
 
   @Post('login')
   maintenanceLogin(@Body() _dto: MaintenanceLoginDto): MaintenanceAuthDto {
@@ -42,23 +33,12 @@ export class MaintenanceController {
   @Get('backups/list')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
   listBackups() {
-    return this.backupService.listBackups();
+    return this.service.listBackups();
   }
 
   @Post('backups/restore')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
-  async restoreBackup(@Body() dto: MaintenanceRestoreBackupDto): Promise<MaintenanceRestoreBackupResponseDto> {
-    try {
-      await this.backupService.restoreBackup(dto.backup);
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: (error as { message?: string }).message ?? 'Unknown error occurred, check logs!',
-      };
-    }
+  async restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): Promise<void> {
+    this.service.restoreBackup();
   }
 }

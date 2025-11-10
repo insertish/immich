@@ -7,14 +7,18 @@ import { IncomingHttpHeaders } from 'node:http';
 import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { ImmichCookie, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
+import { DatabaseRepository } from 'src/repositories/database.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { MaintenanceWorkerRepository } from 'src/repositories/maintenance-worker.repository';
+import { ProcessRepository } from 'src/repositories/process.repository';
+import { StorageRepository } from 'src/repositories/storage.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
 import { type ApiService as _ApiService } from 'src/services/api.service';
 import { type BaseService as _BaseService } from 'src/services/base.service';
 import { type ServerService as _ServerService } from 'src/services/server.service';
 import { type StorageService as _StorageService } from 'src/services/storage.service';
 import { MaintenanceModeState } from 'src/types';
+import { listBackups, restoreBackup } from 'src/utils/backups';
 import { getConfig } from 'src/utils/config';
 import { createMaintenanceLoginUrl } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
@@ -27,11 +31,18 @@ export class MaintenanceWorkerService {
   constructor(
     protected logger: LoggingRepository,
     private configRepository: ConfigRepository,
+    private storageRepository: StorageRepository,
+    private processRepository: ProcessRepository,
+    private databaseRepository: DatabaseRepository,
     private systemMetadataRepository: SystemMetadataRepository,
     private maintenanceWorkerRepository: MaintenanceWorkerRepository,
   ) {
     this.logger.setContext(this.constructor.name);
   }
+
+  /**
+   * Service reimplementations
+   */
 
   /**
    * {@link _BaseService.configRepos}
@@ -131,6 +142,10 @@ export class MaintenanceWorkerService {
     return '/usr/src/app/upload';
   }
 
+  /**
+   * Maintenance Mode
+   */
+
   private async secret(): Promise<string> {
     const state = (await this.systemMetadataRepository.get(SystemMetadataKey.MaintenanceMode)) as {
       secret: string;
@@ -182,5 +197,27 @@ export class MaintenanceWorkerService {
     const state: MaintenanceModeState = { isMaintenanceMode: false as const };
     await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, state);
     this.maintenanceWorkerRepository.restartApp(state);
+  }
+
+  /**
+   * Backups
+   */
+
+  async restoreBackup(filename: string): Promise<void> {
+    await restoreBackup(this.backupRepos, filename);
+  }
+
+  async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
+    return await listBackups(this.backupRepos);
+  }
+
+  private get backupRepos() {
+    return {
+      logger: this.logger,
+      storage: this.storageRepository,
+      config: this.configRepository,
+      process: this.processRepository,
+      database: this.databaseRepository,
+    };
   }
 }

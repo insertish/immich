@@ -4,6 +4,7 @@ import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { SystemMetadataKey } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
 import { MaintenanceModeState } from 'src/types';
+import { listBackups } from 'src/utils/backups';
 import { createMaintenanceLoginUrl, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
 
@@ -62,5 +63,27 @@ export class MaintenanceService extends BaseService {
     }
 
     return await createMaintenanceLoginUrl(baseUrl, auth, secret);
+  }
+
+  /**
+   * Backups
+   */
+
+  async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
+    return await listBackups(this.backupRepos);
+  }
+
+  restoreBackup(): void {
+    throw new Error('Not in maintenance mode');
+  }
+
+  private get backupRepos() {
+    return {
+      logger: this.logger,
+      storage: this.storageRepository,
+      config: this.configRepository,
+      process: this.processRepository,
+      database: this.databaseRepository,
+    };
   }
 }

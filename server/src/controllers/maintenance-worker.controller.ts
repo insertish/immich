@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { MaintenanceAuthDto, MaintenanceLoginDto } from 'src/dtos/maintenance.dto';
+import { MaintenanceAuthDto, MaintenanceLoginDto, MaintenanceRestoreBackupDto } from 'src/dtos/maintenance.dto';
 import { ServerConfigDto } from 'src/dtos/server.dto';
 import { ImmichCookie } from 'src/enum';
 import { MaintenanceRoute } from 'src/middleware/maintenance-auth.guard';
@@ -39,5 +39,17 @@ export class MaintenanceWorkerController {
   @MaintenanceRoute()
   async endMaintenance(): Promise<void> {
     await this.service.endMaintenance();
+  }
+
+  @Get('backups/list')
+  @MaintenanceRoute()
+  listBackups() {
+    return this.service.listBackups();
+  }
+
+  @Post('backups/restore')
+  @MaintenanceRoute()
+  async restoreBackup(@Body() dto: MaintenanceRestoreBackupDto): Promise<void> {
+    throw 'unimplemented';
   }
 }

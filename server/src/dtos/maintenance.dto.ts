@@ -14,11 +14,6 @@ export class MaintenanceRestoreBackupDto {
   backup!: string;
 }
 
-export class MaintenanceRestoreBackupResponseDto {
-  success!: boolean;
-  error?: string;
-}
-
 export class MaintenanceListBackupsResponseDto {
   backups!: string[];
   failedBackups!: string[];
