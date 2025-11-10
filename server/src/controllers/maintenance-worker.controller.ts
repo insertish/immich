@@ -49,7 +49,7 @@ export class MaintenanceWorkerController {
 
   @Post('backups/restore')
   @MaintenanceRoute()
-  async restoreBackup(@Body() dto: MaintenanceRestoreBackupDto): Promise<void> {
+  restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): void {
     throw 'unimplemented';
   }
 }

@@ -38,7 +38,7 @@ export class MaintenanceController {
 
   @Post('backups/restore')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
-  async restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): Promise<void> {
+  restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): void {
     this.service.restoreBackup();
   }
 }

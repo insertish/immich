@@ -368,7 +368,10 @@ export async function listBackups({
   const files = await storage.readdir(backupsFolder);
 
   return {
-    backups: files.filter(isValidBackupName).sort().toReversed(),
-    failedBackups: files.filter(isFailedBackupName),
+    backups: files
+      .filter((fn) => isValidBackupName(fn))
+      .sort()
+      .toReversed(),
+    failedBackups: files.filter((fn) => isFailedBackupName(fn)),
   };
 }
