@@ -4,7 +4,7 @@
   import { maintenanceStore } from '$lib/stores/maintenance.store';
   import { handleError } from '$lib/utils/handle-error';
   import { endMaintenance } from '@immich/sdk';
-  import { Button, Heading, Link, Scrollable } from '@immich/ui';
+  import { Button, Heading, Link, Scrollable, Text } from '@immich/ui';
   import { t } from 'svelte-i18n';
 
   // strip token from URL after load
@@ -36,10 +36,11 @@
       {:else}
         <div class="w-[240px] h-[10px] bg-gray-300 rounded-full overflow-hidden">
           <div
-            class="h-full bg-blue-600 transition-all duration-300"
+            class="h-full bg-blue-600 transition-all duration-700"
             style="width: {($status.progress || 0) * 100}%"
           ></div>
         </div>
+        <Text>{$t(`maintenance_operation_${$status.action as 'backup' | 'restore'}`)}</Text>
       {/if}
     {:else}
       <Heading size="large" color="primary" tag="h1">{$t('maintenance_title')}</Heading>

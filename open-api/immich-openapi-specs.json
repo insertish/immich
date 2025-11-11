@@ -12809,6 +12809,9 @@
       },
       "MaintenanceStatusResponseDto": {
         "properties": {
+          "action": {
+            "type": "string"
+          },
           "error": {
             "type": "string"
           },

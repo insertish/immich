@@ -13,11 +13,20 @@ part of openapi.api;
 class MaintenanceStatusResponseDto {
   /// Returns a new [MaintenanceStatusResponseDto] instance.
   MaintenanceStatusResponseDto({
+    this.action,
     this.error,
     this.exitingMaintenanceMode,
     this.operation,
     this.progress,
   });
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  String? action;
 
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
@@ -47,6 +56,7 @@ class MaintenanceStatusResponseDto {
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is MaintenanceStatusResponseDto &&
+    other.action == action &&
     other.error == error &&
     other.exitingMaintenanceMode == exitingMaintenanceMode &&
     other.operation == operation &&
@@ -55,16 +65,22 @@ class MaintenanceStatusResponseDto {
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
+    (action == null ? 0 : action!.hashCode) +
     (error == null ? 0 : error!.hashCode) +
     (exitingMaintenanceMode == null ? 0 : exitingMaintenanceMode!.hashCode) +
     (operation == null ? 0 : operation!.hashCode) +
     (progress == null ? 0 : progress!.hashCode);
 
   @override
-  String toString() => 'MaintenanceStatusResponseDto[error=$error, exitingMaintenanceMode=$exitingMaintenanceMode, operation=$operation, progress=$progress]';
+  String toString() => 'MaintenanceStatusResponseDto[action=$action, error=$error, exitingMaintenanceMode=$exitingMaintenanceMode, operation=$operation, progress=$progress]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
+    if (this.action != null) {
+      json[r'action'] = this.action;
+    } else {
+    //  json[r'action'] = null;
+    }
     if (this.error != null) {
       json[r'error'] = this.error;
     } else {
@@ -97,6 +113,7 @@ class MaintenanceStatusResponseDto {
       final json = value.cast<String, dynamic>();
 
       return MaintenanceStatusResponseDto(
+        action: mapValueOfType<String>(json, r'action'),
         error: mapValueOfType<String>(json, r'error'),
         exitingMaintenanceMode: mapValueOfType<bool>(json, r'exitingMaintenanceMode'),
         operation: MaintenanceStatusResponseDtoOperationEnum.fromJson(json[r'operation']),

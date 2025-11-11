@@ -226,7 +226,7 @@ export async function createBackup({
 export async function restoreBackup(
   { logger, storage, process: processRepository, ...pgRepos }: BackupRepos,
   filename: string,
-  progressCb?: (progress: number) => void,
+  progressCb?: (action: 'backup' | 'restore', progress: number) => void,
 ): Promise<void> {
   logger.debug(`Database Restore Started`);
 
@@ -250,6 +250,9 @@ export async function restoreBackup(
 
     const backupFilePath = path.join(StorageCore.getBaseFolder(StorageFolder.Backups), filename);
     await storage.stat(backupFilePath); // => check file exists
+
+    progressCb?.('backup', 0.05);
+    await createBackup({ logger, storage, process: processRepository, ...pgRepos });
 
     logger.log(`Database Restore Starting.`);
 
@@ -327,7 +330,7 @@ export async function restoreBackup(
           : // if we're not done reading yet, just make something up that moves!
             Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
         logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
-        progressCb?.(progress);
+        progressCb?.('restore', progress);
       },
       50,
       {

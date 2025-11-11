@@ -220,10 +220,11 @@ export class MaintenanceWorkerService {
 
   private async restoreBackup(filename: string): Promise<void> {
     await this.databaseRepository.tryLock(DatabaseLock.MaintenanceOperation);
-    await restoreBackup(this.backupRepos, filename, (progress) =>
+    await restoreBackup(this.backupRepos, filename, (action, progress) =>
       this.maintenanceWorkerRepository.emitStatus({
         operation: MaintenanceOperation.RestoreDatabase,
         progress,
+        action,
       }),
     );
 

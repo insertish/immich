@@ -23,6 +23,7 @@ export class MaintenanceListBackupsResponseDto {
 export class MaintenanceStatusResponseDto {
   operation?: MaintenanceOperation;
   progress?: number;
+  action?: string;
   error?: string;
 
   exitingMaintenanceMode?: boolean;
