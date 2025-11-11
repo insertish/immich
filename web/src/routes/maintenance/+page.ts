@@ -2,5 +2,5 @@ import { loadMaintenanceAuth, loadMaintenanceStatus } from '$lib/utils/maintenan
 import type { PageLoad } from '../admin/$types';
 
 export const load = (async () => {
-  await Promise.all([loadMaintenanceStatus(), loadMaintenanceAuth()]);
+  await Promise.allSettled([loadMaintenanceStatus(), loadMaintenanceAuth()]);
 }) satisfies PageLoad;

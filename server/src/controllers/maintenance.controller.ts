@@ -20,7 +20,9 @@ export class MaintenanceController {
 
   @Get('status')
   maintenanceStatus(): MaintenanceStatusResponseDto {
-    return {};
+    return {
+      exitingMaintenanceMode: true,
+    };
   }
 
   @Post('login')

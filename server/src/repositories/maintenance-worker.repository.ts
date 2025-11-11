@@ -65,6 +65,10 @@ export class MaintenanceWorkerRepository implements OnGatewayConnection, OnGatew
   }
 
   restartApp(state: AppRestartEvent) {
+    this.emitStatus({
+      exitingMaintenanceMode: true,
+    });
+
     // => corresponds to notification.service.ts#onAppRestart
     this.websocketServer!.emit('AppRestartV1', state, () => {
       this.websocketServer!.serverSideEmit('AppRestart', state, () => {

@@ -146,10 +146,6 @@ export class MaintenanceWorkerService {
    * Maintenance Mode
    */
 
-  private async secret(): Promise<string> {
-    return this.maintenanceWorkerRepository.secret;
-  }
-
   async logSecret(): Promise<void> {
     const { server } = await this.getConfig({ withCache: true });
 
@@ -159,7 +155,7 @@ export class MaintenanceWorkerService {
       {
         username: 'immich-admin',
       },
-      await this.secret(),
+      await this.maintenanceWorkerRepository.secret,
     );
 
     this.logger.log(`\n\n🚧 Immich is in maintenance mode, you can log in using the following URL:\n${url}\n`);
@@ -184,10 +180,11 @@ export class MaintenanceWorkerService {
       throw new UnauthorizedException('Missing JWT Token');
     }
 
-    const secret = await this.secret();
-
     try {
-      const result = await jwtVerify<MaintenanceAuthDto>(jwt, new TextEncoder().encode(secret));
+      const result = await jwtVerify<MaintenanceAuthDto>(
+        jwt,
+        new TextEncoder().encode(this.maintenanceWorkerRepository.secret),
+      );
       return result.payload;
     } catch {
       throw new UnauthorizedException('Invalid JWT Token');
@@ -213,7 +210,7 @@ export class MaintenanceWorkerService {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 5e3));
+    // await new Promise((resolve) => setTimeout(resolve, 5e3));
 
     this.logger.log(`Attempting to start the ${operation.operation} operation!`);
 

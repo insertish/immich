@@ -55,6 +55,7 @@ export type MaintenanceAuthDto = {
 };
 export type MaintenanceStatusResponseDto = {
     error?: string;
+    exitingMaintenanceMode?: boolean;
     operation?: Operation;
     progress?: number;
 };

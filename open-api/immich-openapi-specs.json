@@ -12812,6 +12812,9 @@
           "error": {
             "type": "string"
           },
+          "exitingMaintenanceMode": {
+            "type": "boolean"
+          },
           "operation": {
             "enum": [
               "restore-database"

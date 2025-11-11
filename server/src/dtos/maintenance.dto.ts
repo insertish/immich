@@ -24,4 +24,6 @@ export class MaintenanceStatusResponseDto {
   operation?: MaintenanceOperation;
   progress?: number;
   error?: string;
+
+  exitingMaintenanceMode?: boolean;
 }

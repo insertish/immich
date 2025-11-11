@@ -1,5 +1,6 @@
 import { AppRoute } from '$lib/constants';
 import { maintenanceStore } from '$lib/stores/maintenance.store';
+import { websocketStore } from '$lib/stores/websocket';
 import { maintenanceLogin, maintenanceStatus } from '@immich/sdk';
 
 export function maintenanceCreateUrl(url: URL) {
@@ -34,8 +35,19 @@ export const loadMaintenanceAuth = async () => {
 
 export const loadMaintenanceStatus = async () => {
   try {
-    maintenanceStore.status.set(await maintenanceStatus());
-  } catch {
-    // no-op
+    const status = await maintenanceStatus();
+    maintenanceStore.status.set(status);
+
+    if (status.exitingMaintenanceMode) {
+      websocketStore.serverRestarting.set({
+        isMaintenanceMode: false,
+      });
+    }
+  } catch (error) {
+    const status = (error as { status: number })?.status;
+    if (status && status >= 500 && status < 600) {
+      await new Promise((r) => setTimeout(r, 1e3));
+      await loadMaintenanceStatus();
+    }
   }
 };
