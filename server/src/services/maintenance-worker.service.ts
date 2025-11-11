@@ -19,7 +19,7 @@ import { type BaseService as _BaseService } from 'src/services/base.service';
 import { type ServerService as _ServerService } from 'src/services/server.service';
 import { type StorageService as _StorageService } from 'src/services/storage.service';
 import { MaintenanceModeState } from 'src/types';
-import { listBackups, restoreBackup } from 'src/utils/backups';
+import { deleteBackup, listBackups, restoreBackup } from 'src/utils/backups';
 import { getConfig } from 'src/utils/config';
 import { createMaintenanceLoginUrl } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
@@ -199,9 +199,20 @@ export class MaintenanceWorkerService {
       return;
     }
 
-    // await new Promise((resolve) => setTimeout(resolve, 5e3));
+    const lock = await this.databaseRepository.tryLock(DatabaseLock.MaintenanceOperation);
+    if (!lock) {
+      return;
+    }
 
-    this.logger.log(`Attempting to start the ${operation.operation} operation!`);
+    this.logger.log(`Starting maintenance operation ${operation.operation}!`);
+
+    // remove `operations` block to prevent:
+    // => restored `auto backup dump` from running operation on restore
+    // => maintenance worker attempting to restart operation on restart
+    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
+      isMaintenanceMode: true,
+      secret: this.maintenanceWorkerRepository.secret,
+    });
 
     try {
       await this.restoreBackup(operation.filename);
@@ -219,7 +230,6 @@ export class MaintenanceWorkerService {
    */
 
   private async restoreBackup(filename: string): Promise<void> {
-    await this.databaseRepository.tryLock(DatabaseLock.MaintenanceOperation);
     await restoreBackup(this.backupRepos, filename, (action, progress) =>
       this.maintenanceWorkerRepository.emitStatus({
         operation: MaintenanceOperation.RestoreDatabase,
@@ -235,6 +245,10 @@ export class MaintenanceWorkerService {
 
   async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
     return await listBackups(this.backupRepos);
+  }
+
+  async deleteBackup(filename: string): Promise<void> {
+    return deleteBackup(this.backupRepos, filename);
   }
 
   private get backupRepos() {

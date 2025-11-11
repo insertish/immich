@@ -4,7 +4,7 @@ import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { MaintenanceOperation, SystemMetadataKey } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
 import { MaintenanceModeState } from 'src/types';
-import { listBackups } from 'src/utils/backups';
+import { deleteBackup, listBackups } from 'src/utils/backups';
 import { createMaintenanceLoginUrl, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
 
@@ -85,6 +85,10 @@ export class MaintenanceService extends BaseService {
       operation: MaintenanceOperation.RestoreDatabase,
       filename,
     });
+  }
+
+  async deleteBackup(filename: string): Promise<void> {
+    return deleteBackup(this.backupRepos, filename);
   }
 
   private get backupRepos() {

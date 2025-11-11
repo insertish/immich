@@ -315,6 +315,44 @@
         "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
+    "/admin/maintenance/backups/{filename}": {
+      "delete": {
+        "operationId": "deleteBackup",
+        "parameters": [
+          {
+            "name": "filename",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "string",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "tags": [
+          "Maintenance (admin)"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-permission": "maintenance",
+        "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
+      }
+    },
     "/admin/maintenance/end": {
       "post": {
         "operationId": "endMaintenance",

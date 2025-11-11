@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
@@ -12,6 +12,7 @@ import {
 import { ImmichCookie, Permission } from 'src/enum';
 import { Auth, Authenticated } from 'src/middleware/auth.guard';
 import { MaintenanceService } from 'src/services/maintenance.service';
+import { FilenameParamDto } from 'src/validation';
 
 @ApiTags('Maintenance (admin)')
 @Controller('admin/maintenance')
@@ -58,5 +59,11 @@ export class MaintenanceController {
   ): Promise<void> {
     const { jwt } = await this.service.restoreBackup(auth.user.name, dto.backup);
     response.cookie(ImmichCookie.MaintenanceToken, jwt);
+  }
+
+  @Delete('backups/:filename')
+  @Authenticated({ permission: Permission.Maintenance, admin: true })
+  async deleteBackup(@Param() { filename }: FilenameParamDto): Promise<void> {
+    return this.service.deleteBackup(filename);
   }
 }

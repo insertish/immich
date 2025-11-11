@@ -388,6 +388,11 @@ export async function restoreBackup(
   logger.log(`Database Restore Success`);
 }
 
+export async function deleteBackup({ storage }: Pick<BackupRepos, 'storage'>, filename: string): Promise<void> {
+  const backupsFolder = StorageCore.getBaseFolder(StorageFolder.Backups);
+  await storage.unlink(path.join(backupsFolder, filename));
+}
+
 export async function listBackups({
   storage,
 }: Pick<BackupRepos, 'storage'>): Promise<Record<'backups' | 'failedBackups', string[]>> {

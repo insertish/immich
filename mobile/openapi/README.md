@@ -151,6 +151,7 @@ Class | Method | HTTP request | Description
 *LibrariesApi* | [**scanLibrary**](doc//LibrariesApi.md#scanlibrary) | **POST** /libraries/{id}/scan | 
 *LibrariesApi* | [**updateLibrary**](doc//LibrariesApi.md#updatelibrary) | **PUT** /libraries/{id} | 
 *LibrariesApi* | [**validate**](doc//LibrariesApi.md#validate) | **POST** /libraries/{id}/validate | 
+*MaintenanceAdminApi* | [**deleteBackup**](doc//MaintenanceAdminApi.md#deletebackup) | **DELETE** /admin/maintenance/backups/{filename} | 
 *MaintenanceAdminApi* | [**endMaintenance**](doc//MaintenanceAdminApi.md#endmaintenance) | **POST** /admin/maintenance/end | 
 *MaintenanceAdminApi* | [**listBackups**](doc//MaintenanceAdminApi.md#listbackups) | **GET** /admin/maintenance/backups/list | 
 *MaintenanceAdminApi* | [**maintenanceLogin**](doc//MaintenanceAdminApi.md#maintenancelogin) | **POST** /admin/maintenance/login | 

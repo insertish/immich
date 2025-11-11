@@ -1796,6 +1796,17 @@ export function restoreBackup({ maintenanceRestoreBackupDto }: {
 /**
  * This endpoint is an admin-only route, and requires the `maintenance` permission.
  */
+export function deleteBackup({ filename }: {
+    filename: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/admin/maintenance/backups/${encodeURIComponent(filename)}`, {
+        ...opts,
+        method: "DELETE"
+    }));
+}
+/**
+ * This endpoint is an admin-only route, and requires the `maintenance` permission.
+ */
 export function endMaintenance(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/end", {
         ...opts,

@@ -19,6 +19,51 @@ class MaintenanceAdminApi {
   /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   ///
   /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [String] filename (required):
+  Future<Response> deleteBackupWithHttpInfo(String filename,) async {
+    // ignore: prefer_const_declarations
+    final apiPath = r'/admin/maintenance/backups/{filename}'
+      .replaceAll('{filename}', filename);
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      apiPath,
+      'DELETE',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  ///
+  /// Parameters:
+  ///
+  /// * [String] filename (required):
+  Future<void> deleteBackup(String filename,) async {
+    final response = await deleteBackupWithHttpInfo(filename,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+  }
+
+  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
+  ///
+  /// Note: This method returns the HTTP [Response].
   Future<Response> endMaintenanceWithHttpInfo() async {
     // ignore: prefer_const_declarations
     final apiPath = r'/admin/maintenance/end';

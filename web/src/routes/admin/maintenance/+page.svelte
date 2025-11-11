@@ -4,10 +4,11 @@
   import SettingAccordion from '$lib/components/shared-components/settings/setting-accordion.svelte';
   import { QueryParameter } from '$lib/constants';
   import { handleError } from '$lib/utils/handle-error';
-  import { restoreBackup, startMaintenance } from '@immich/sdk';
-  import { Button, Card, CardBody, HStack, Stack, Text } from '@immich/ui';
+  import { deleteBackup, restoreBackup, startMaintenance } from '@immich/sdk';
+  import { Button, Card, CardBody, HStack, modalManager, Stack, Text } from '@immich/ui';
   import { mdiProgressWrench, mdiRefresh } from '@mdi/js';
   import { t } from 'svelte-i18n';
+  import { SvelteSet } from 'svelte/reactivity';
   import type { PageData } from './$types';
 
   interface Props {
@@ -15,6 +16,9 @@
   }
 
   let { data }: Props = $props();
+
+  let backups = $state(data.backups);
+  let deleting = new SvelteSet();
 
   async function switchToMaintenance() {
     try {
@@ -25,14 +29,46 @@
   }
 
   async function restore(filename: string) {
-    try {
-      await restoreBackup({
-        maintenanceRestoreBackupDto: {
-          backup: filename,
-        },
-      });
-    } catch (error) {
-      handleError(error, $t('admin.maintenance_start_error'));
+    const confirm = await modalManager.showDialog({
+      confirmText: 'Restore',
+      title: 'Restore Backup',
+      prompt: 'Immich will be wiped and restored from the chosen backup. A backup will be created before continuing.',
+    });
+
+    if (confirm) {
+      try {
+        await restoreBackup({
+          maintenanceRestoreBackupDto: {
+            backup: filename,
+          },
+        });
+      } catch (error) {
+        handleError(error, $t('admin.maintenance_start_error'));
+      }
+    }
+  }
+
+  async function remove(filename: string) {
+    const confirm = await modalManager.showDialog({
+      confirmText: 'Delete',
+      title: 'Delete Backup',
+      prompt: 'This file will be irrevocably deleted.',
+    });
+
+    if (confirm) {
+      try {
+        deleting.add(filename);
+
+        await deleteBackup({
+          filename,
+        });
+
+        backups = backups.filter((backup) => backup.filename !== filename);
+      } catch (error) {
+        handleError(error, 'failed to delete backup i18n');
+      } finally {
+        deleting.delete(filename);
+      }
     }
   }
 </script>
@@ -55,19 +91,6 @@
   <section id="setting-content" class="flex place-content-center sm:mx-4">
     <section class="w-full pb-28 sm:w-5/6 md:w-[850px]">
       <SettingAccordionState queryParam={QueryParameter.IS_OPEN}>
-        <!-- {#each filteredSettings as { component: Component, title, subtitle, key, icon } (key)}
-              <SettingAccordion {title} {subtitle} {key} {icon}>
-                <Component
-                  onSave={(config) => adminSettingElement?.handleSave(config)}
-                  onReset={(options) => adminSettingElement?.handleReset(options)}
-                  disabled={$featureFlags.configFile}
-                  bind:config
-                  {defaultConfig}
-                  {savedConfig}
-                />
-              </SettingAccordion>
-            {/each} -->
-
         <SettingAccordion
           title="Restore database backup"
           subtitle="Rollback to an earlier database state using a backup file"
@@ -75,7 +98,7 @@
           key="backups"
         >
           <Stack gap={2} class="mt-4">
-            {#each data.backups as backup (backup.filename)}
+            {#each backups as backup (backup.filename)}
               <Card>
                 <CardBody>
                   <HStack>
@@ -89,7 +112,17 @@
                         <Text color="info" size="small">Created {backup.daysAgo} days ago</Text>
                       {/if}
                     </Stack>
-                    <Button size="small" onclick={() => restore(backup.filename)}>Restore</Button>
+                    <Button
+                      size="small"
+                      disabled={deleting.has(backup.filename)}
+                      onclick={() => restore(backup.filename)}>Restore</Button
+                    >
+                    <Button
+                      size="small"
+                      color="danger"
+                      disabled={deleting.has(backup.filename)}
+                      onclick={() => remove(backup.filename)}>Delete</Button
+                    >
                   </HStack>
                 </CardBody>
               </Card>

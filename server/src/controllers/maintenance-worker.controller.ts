@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import {
@@ -12,6 +12,7 @@ import { ServerConfigDto } from 'src/dtos/server.dto';
 import { ImmichCookie } from 'src/enum';
 import { MaintenanceRoute } from 'src/middleware/maintenance-auth.guard';
 import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
+import { FilenameParamDto } from 'src/validation';
 
 @ApiTags('Maintenance (admin)')
 @Controller()
@@ -62,5 +63,11 @@ export class MaintenanceWorkerController {
   @MaintenanceRoute()
   restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): void {
     throw 'unimplemented';
+  }
+
+  @Delete('backups/:filename')
+  @MaintenanceRoute()
+  async deleteBackup(@Param() { filename }: FilenameParamDto): Promise<void> {
+    return this.service.deleteBackup(filename);
   }
 }
