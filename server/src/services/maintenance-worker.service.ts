@@ -5,6 +5,7 @@ import { jwtVerify } from 'jose';
 import { readFileSync } from 'node:fs';
 import { IncomingHttpHeaders } from 'node:http';
 import { MaintenanceAuthDto, MaintenanceStatusResponseDto } from 'src/dtos/maintenance.dto';
+import { ServerConfigDto } from 'src/dtos/server.dto';
 import { DatabaseLock, ImmichCookie, MaintenanceOperation, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
@@ -66,21 +67,9 @@ export class MaintenanceWorkerService {
    * {@link _ServerService.getSystemConfig}
    */
   async getSystemConfig() {
-    const config = await this.getConfig({ withCache: false });
-
     return {
-      loginPageMessage: config.server.loginPageMessage,
-      trashDays: config.trash.days,
-      userDeleteDelay: config.user.deleteDelay,
-      oauthButtonText: config.oauth.buttonText,
-      isInitialized: true,
-      isOnboarded: true,
-      externalDomain: config.server.externalDomain,
-      publicUsers: config.server.publicUsers,
-      mapDarkStyleUrl: config.map.darkStyle,
-      mapLightStyleUrl: config.map.lightStyle,
       maintenanceMode: true,
-    };
+    } as ServerConfigDto;
   }
 
   /**
