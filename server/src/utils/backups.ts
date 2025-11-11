@@ -1,5 +1,9 @@
+import { debounce } from 'lodash';
 import { DateTime } from 'luxon';
 import path, { join } from 'node:path';
+import { PassThrough, Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { createGunzip } from 'node:zlib';
 import semver from 'semver';
 import { serverVersion } from 'src/constants';
 import { StorageCore } from 'src/cores/storage.core';
@@ -98,6 +102,13 @@ export async function buildPostgresLaunchArguments(
         case 'pg_dump':
         case 'pg_dumpall': {
           args.push('--clean', '--if-exists');
+          break;
+        }
+        case 'psql': {
+          // don't commit any transaction on failure
+          args.push('--single-transaction');
+          // used for progress monitoring
+          args.push('--echo-all');
           break;
         }
       }
@@ -210,6 +221,7 @@ export async function createBackup({
 export async function restoreBackup(
   { logger, storage, process: processRepository, ...pgRepos }: BackupRepos,
   filename: string,
+  progressCb?: (progress: number) => void,
 ): Promise<void> {
   logger.debug(`Database Restore Started`);
 
@@ -234,60 +246,7 @@ export async function restoreBackup(
     const backupFilePath = path.join(StorageCore.getBaseFolder(StorageFolder.Backups), filename);
     await storage.stat(backupFilePath); // => check file exists
 
-    logger.log(`Dropping all connections to database and preparing for backup.`);
-
-    const PREPARE_SQL = `
-        SELECT pg_terminate_backend(pid)
-        FROM pg_stat_activity
-        WHERE datname = current_database()
-          AND pid <> pg_backend_pid();
-
-        DROP SCHEMA public CASCADE;
-        CREATE SCHEMA public;
-
-        GRANT ALL ON SCHEMA public TO postgres;
-        GRANT ALL ON SCHEMA public TO public;
-      `;
-
-    await new Promise<void>((resolve, reject) => {
-      const psql = processRepository.spawn(bin, args(), {
-        env: {
-          PATH: process.env.PATH,
-          PGPASSWORD: databasePassword,
-        },
-      });
-
-      psql.stdin.write(PREPARE_SQL);
-      psql.stdin.end();
-
-      let psqlLogs = '';
-
-      psql.stderr.on('data', (data) => (psqlLogs += data));
-
-      // catch stdin error so we can read errors from psql
-      psql.stdin.on('error', (error) => {
-        if ((error as { code?: string })?.code !== 'EPIPE') {
-          throw error;
-        }
-      });
-
-      psql.on('exit', (code) => {
-        if (code !== 0) {
-          logger.error(`Prepare failed with code ${code}`);
-          reject(`Prepare failed with code ${code}`);
-          logger.error(psqlLogs);
-          return;
-        }
-        if (psqlLogs) {
-          logger.debug(`psql logs\n${psqlLogs}`);
-        }
-        resolve();
-      });
-    });
-
     logger.log(`Database Restore Starting.`);
-
-    const gzip = processRepository.spawn('gzip', ['-cd']);
 
     const psql = processRepository.spawn(bin, args(), {
       env: {
@@ -296,61 +255,117 @@ export async function restoreBackup(
       },
     });
 
-    gzip.stdout.pipe(psql.stdin);
-
     const fileStream = await storage.createReadStream(backupFilePath);
-    fileStream.stream.pipe(gzip.stdin);
+    const gunzip = createGunzip();
+    fileStream.stream.pipe(gunzip);
 
-    await new Promise<void>((resolve, reject) => {
-      psql.on('error', (err) => {
-        logger.error(`Restore failed with error: ${err}`);
-        reject(err);
-      });
+    async function* sql() {
+      yield `
+        -- drop all other database connections
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = current_database()
+          AND pid <> pg_backend_pid();
 
-      gzip.on('error', (err) => {
-        logger.error(`Gzip failed with error: ${err}`);
-        reject(err);
-      });
+        -- re-create the default schema
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
 
-      let psqlLogs = '';
-      let gzipLogs = '';
+        -- restore access to schema
+        GRANT ALL ON SCHEMA public TO postgres;
+        GRANT ALL ON SCHEMA public TO public;
+      `;
 
-      psql.stdout.on('data', (data) => console.info('' + data));
-      psql.stderr.on('data', (data) => console.error('' + data));
+      for await (const chunk of gunzip) {
+        yield chunk;
+      }
+    }
 
-      psql.stderr.on('data', (data) => (psqlLogs += data));
-      gzip.stderr.on('data', (data) => (gzipLogs += data));
+    const encoder = new TextEncoder();
+    const STDIN_MARKER = encoder.encode('FROM stdin');
+    const END_MARKER = encoder.encode('\\.');
 
-      // catch stdin error so we can read errors from psql
-      psql.stdin.on('error', (error) => {
-        if ((error as { code?: string })?.code !== 'EPIPE') {
-          throw error;
+    let linesSent = 0;
+    let linesProcessed = 0;
+    let inputEnded = false;
+    let readingStdin = false;
+    let sequenceIdx = 0;
+
+    const passthrough = new PassThrough();
+    passthrough.on('data', (chunk: Buffer) => {
+      for (const byte of chunk) {
+        if (byte === 10 && !readingStdin) {
+          linesSent += 1;
+        } else {
+          const sequence = readingStdin ? END_MARKER : STDIN_MARKER;
+          if (sequence[sequenceIdx] === byte) {
+            sequenceIdx += 1;
+
+            if (sequence.length === sequenceIdx) {
+              sequenceIdx = 0;
+              readingStdin = !readingStdin;
+            }
+          } else {
+            sequenceIdx = 0;
+          }
         }
-      });
-
-      psql.on('exit', (code) => {
-        if (code !== 0) {
-          logger.error(`Restore failed with code ${code}`);
-          reject(`Restore failed with code ${code}`);
-          logger.error(psqlLogs);
-          return;
-        }
-        if (psqlLogs) {
-          logger.debug(`psql logs\n${psqlLogs}`);
-        }
-        logger.debug('psql exited with', code);
-        resolve();
-      });
-
-      gzip.on('exit', (code) => {
-        if (code !== 0) {
-          logger.error(`Gzip failed with code ${code}`);
-          reject(`Gzip failed with code ${code}`);
-          logger.error(gzipLogs);
-          return;
-        }
-      });
+      }
     });
+
+    passthrough.on('end', () => (inputEnded = true));
+
+    const startedAt = +new Date();
+    const reportProgress = debounce(
+      () => {
+        const progress = inputEnded
+          ? linesProcessed / linesSent
+          : // if we're not done reading yet, just make something up that moves!
+            Math.min(0.3, 0.1 + (+new Date() - startedAt) / 1e4);
+        logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
+        progressCb?.(progress);
+      },
+      50,
+      {
+        maxWait: 100,
+      },
+    );
+
+    await Promise.all([
+      // pipe sql -> psql
+      pipeline(Readable.from(sql()), passthrough, psql.stdin),
+      // handle psql lifecycle
+      new Promise<void>((resolve, reject) => {
+        psql.stdout.on('data', (chunk) => {
+          for (const byte of chunk) {
+            if (byte === 10) {
+              linesProcessed += 1;
+            }
+          }
+
+          reportProgress();
+        });
+
+        let psqlLogs = '';
+        psql.stderr.on('data', (data) => (psqlLogs += data));
+
+        psql.on('error', (err) => {
+          logger.error(`Restore failed with error: ${err}`);
+          reject(err);
+        });
+
+        psql.on('exit', (code) => {
+          if (code !== 0) {
+            logger.error(`Restore failed with code ${code}`);
+            reject(`Restore failed with code ${code}`);
+            logger.error(psqlLogs);
+            return;
+          }
+
+          logger.debug('psql exited with', code);
+          resolve();
+        });
+      }),
+    ]);
   } catch (error) {
     logger.error(`Database Restore Failure: ${error}`);
     throw error;

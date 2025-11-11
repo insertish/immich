@@ -20,6 +20,11 @@ interface AppRestartEvent {
   isMaintenanceMode: boolean;
 }
 
+export type MaintenanceOperationProgressEvent = {
+  operation: 'restore-backup';
+  progress: number;
+};
+
 export interface Events {
   on_upload_success: (asset: AssetResponseDto) => void;
   on_user_delete: (id: string) => void;
@@ -37,6 +42,7 @@ export interface Events {
   on_notification: (notification: NotificationDto) => void;
 
   AppRestartV1: (event: AppRestartEvent) => void;
+  MaintenanceOperationProgressV1: (event: MaintenanceOperationProgressEvent) => void;
 }
 
 const websocket: Socket<Events> = io({
@@ -52,6 +58,7 @@ export const websocketStore = {
   serverVersion: writable<ServerVersionResponseDto>(),
   release: writable<ReleaseEvent>(),
   serverRestarting: writable<undefined | AppRestartEvent>(),
+  maintenanceOperationProgress: writable<undefined | MaintenanceOperationProgressEvent>(),
 };
 
 export const websocketEvents = createEventEmitter(websocket);
@@ -61,6 +68,7 @@ websocket
   .on('disconnect', () => websocketStore.connected.set(false))
   .on('on_server_version', (serverVersion) => websocketStore.serverVersion.set(serverVersion))
   .on('AppRestartV1', (mode) => websocketStore.serverRestarting.set(mode))
+  .on('MaintenanceOperationProgressV1', (progress) => websocketStore.maintenanceOperationProgress.set(progress))
   .on('on_new_release', (releaseVersion) => websocketStore.release.set(releaseVersion))
   .on('on_session_delete', () => authManager.logout())
   .on('on_notification', () => notificationManager.refresh())

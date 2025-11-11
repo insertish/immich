@@ -22,7 +22,8 @@ async function bootstrap() {
     ssr: MaintenanceWorkerService,
   });
 
-  void service.logSecret();
+  await service.logSecret();
+  void service.tryStartOperation();
 }
 
 bootstrap().catch((error) => {
