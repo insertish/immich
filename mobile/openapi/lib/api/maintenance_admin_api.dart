@@ -81,7 +81,7 @@ class MaintenanceAdminApi {
   }
 
   /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  Future<Object?> listBackups() async {
+  Future<MaintenanceListBackupsResponseDto?> listBackups() async {
     final response = await listBackupsWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -90,7 +90,7 @@ class MaintenanceAdminApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MaintenanceListBackupsResponseDto',) as MaintenanceListBackupsResponseDto;
     
     }
     return null;

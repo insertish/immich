@@ -2,7 +2,12 @@ import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
-import { MaintenanceAuthDto, MaintenanceLoginDto, MaintenanceRestoreBackupDto } from 'src/dtos/maintenance.dto';
+import {
+  MaintenanceAuthDto,
+  MaintenanceListBackupsResponseDto,
+  MaintenanceLoginDto,
+  MaintenanceRestoreBackupDto,
+} from 'src/dtos/maintenance.dto';
 import { ImmichCookie, Permission } from 'src/enum';
 import { Auth, Authenticated } from 'src/middleware/auth.guard';
 import { MaintenanceService } from 'src/services/maintenance.service';
@@ -32,13 +37,18 @@ export class MaintenanceController {
 
   @Get('backups/list')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
-  listBackups() {
+  listBackups(): Promise<MaintenanceListBackupsResponseDto> {
     return this.service.listBackups();
   }
 
   @Post('backups/restore')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
-  restoreBackup(@Body() _dto: MaintenanceRestoreBackupDto): void {
-    this.service.restoreBackup();
+  async restoreBackup(
+    @Auth() auth: AuthDto,
+    @Body() dto: MaintenanceRestoreBackupDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    const { jwt } = await this.service.restoreBackup(auth.user.name, dto.backup);
+    response.cookie(ImmichCookie.MaintenanceToken, jwt);
   }
 }

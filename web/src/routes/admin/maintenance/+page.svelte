@@ -4,8 +4,8 @@
   import SettingAccordion from '$lib/components/shared-components/settings/setting-accordion.svelte';
   import { QueryParameter } from '$lib/constants';
   import { handleError } from '$lib/utils/handle-error';
-  import { startMaintenance } from '@immich/sdk';
-  import { Button, HStack, Text } from '@immich/ui';
+  import { restoreBackup, startMaintenance } from '@immich/sdk';
+  import { Button, Card, CardBody, HStack, Stack, Text } from '@immich/ui';
   import { mdiProgressWrench, mdiRefresh } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -19,6 +19,18 @@
   async function switchToMaintenance() {
     try {
       await startMaintenance();
+    } catch (error) {
+      handleError(error, $t('admin.maintenance_start_error'));
+    }
+  }
+
+  async function restore(filename: string) {
+    try {
+      await restoreBackup({
+        maintenanceRestoreBackupDto: {
+          backup: filename,
+        },
+      });
     } catch (error) {
       handleError(error, $t('admin.maintenance_start_error'));
     }
@@ -61,7 +73,29 @@
           subtitle="Rollback to an earlier database state using a backup file"
           icon={mdiRefresh}
           key="backups"
-        />
+        >
+          <Stack gap={2} class="mt-4">
+            {#each data.backups as backup (backup.filename)}
+              <Card>
+                <CardBody>
+                  <HStack>
+                    <Stack class="flex-grow">
+                      <Text>{backup.filename}</Text>
+                      {#if backup.daysAgo === 0}
+                        <Text color="info" size="small">Created within the past day</Text>
+                      {:else if backup.daysAgo === 1}
+                        <Text color="info" size="small">Created 1 day ago</Text>
+                      {:else if backup.daysAgo}
+                        <Text color="info" size="small">Created {backup.daysAgo} days ago</Text>
+                      {/if}
+                    </Stack>
+                    <Button size="small" onclick={() => restore(backup.filename)}>Restore</Button>
+                  </HStack>
+                </CardBody>
+              </Card>
+            {/each}
+          </Stack>
+        </SettingAccordion>
       </SettingAccordionState>
     </section>
   </section>

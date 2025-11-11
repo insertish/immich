@@ -40,6 +40,10 @@ export type ActivityStatisticsResponseDto = {
     comments: number;
     likes: number;
 };
+export type MaintenanceListBackupsResponseDto = {
+    backups: string[];
+    failedBackups: string[];
+};
 export type MaintenanceRestoreBackupDto = {
     backup: string;
 };
@@ -1765,7 +1769,7 @@ export function unlinkAllOAuthAccountsAdmin(opts?: Oazapfts.RequestOpts) {
 export function listBackups(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
-        data: object;
+        data: MaintenanceListBackupsResponseDto;
     }>("/admin/maintenance/backups/list", {
         ...opts
     }));

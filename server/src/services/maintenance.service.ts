@@ -3,7 +3,7 @@ import { OnEvent } from 'src/decorators';
 import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { SystemMetadataKey } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
-import { MaintenanceModeState } from 'src/types';
+import { MaintenanceModeOperation, MaintenanceModeState } from 'src/types';
 import { listBackups } from 'src/utils/backups';
 import { createMaintenanceLoginUrl, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
@@ -23,14 +23,18 @@ export class MaintenanceService extends BaseService {
     throw new BadRequestException('Not in maintenance mode');
   }
 
-  async startMaintenance(username: string): Promise<{ jwt: string }> {
+  async startMaintenance(username: string, operation?: MaintenanceModeOperation): Promise<{ jwt: string }> {
     const { isMaintenanceMode } = await this.getMaintenanceMode();
     if (isMaintenanceMode) {
       throw new BadRequestException('Already in maintenance mode');
     }
 
     const secret = generateMaintenanceSecret();
-    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, { isMaintenanceMode: true, secret });
+    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
+      isMaintenanceMode: true,
+      secret,
+      operation,
+    });
     await this.eventRepository.emit('AppRestart', { isMaintenanceMode: true });
 
     return {
@@ -70,11 +74,14 @@ export class MaintenanceService extends BaseService {
    */
 
   async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {
-    return await listBackups(this.backupRepos);
+    return listBackups(this.backupRepos);
   }
 
-  restoreBackup(): void {
-    throw new Error('Not in maintenance mode');
+  async restoreBackup(username: string, filename: string): Promise<{ jwt: string }> {
+    return this.startMaintenance(username, {
+      operation: 'restore-backup',
+      filename,
+    });
   }
 
   private get backupRepos() {

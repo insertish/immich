@@ -1,7 +1,12 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { MaintenanceAuthDto, MaintenanceLoginDto, MaintenanceRestoreBackupDto } from 'src/dtos/maintenance.dto';
+import {
+  MaintenanceAuthDto,
+  MaintenanceListBackupsResponseDto,
+  MaintenanceLoginDto,
+  MaintenanceRestoreBackupDto,
+} from 'src/dtos/maintenance.dto';
 import { ServerConfigDto } from 'src/dtos/server.dto';
 import { ImmichCookie } from 'src/enum';
 import { MaintenanceRoute } from 'src/middleware/maintenance-auth.guard';
@@ -43,7 +48,7 @@ export class MaintenanceWorkerController {
 
   @Get('backups/list')
   @MaintenanceRoute()
-  listBackups() {
+  listBackups(): Promise<MaintenanceListBackupsResponseDto> {
     return this.service.listBackups();
   }
 

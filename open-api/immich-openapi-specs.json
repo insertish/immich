@@ -251,7 +251,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/MaintenanceListBackupsResponseDto"
                 }
               }
             },
@@ -12743,6 +12743,27 @@
         },
         "required": [
           "username"
+        ],
+        "type": "object"
+      },
+      "MaintenanceListBackupsResponseDto": {
+        "properties": {
+          "backups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "failedBackups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "backups",
+          "failedBackups"
         ],
         "type": "object"
       },
