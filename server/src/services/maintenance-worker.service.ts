@@ -208,7 +208,9 @@ export class MaintenanceWorkerService {
       operation: MaintenanceModeOperation;
     };
 
-    if (!operation) return;
+    if (!operation) {
+      return;
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 5e3));
 

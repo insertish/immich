@@ -105,10 +105,15 @@ export async function buildPostgresLaunchArguments(
           break;
         }
         case 'psql': {
-          // don't commit any transaction on failure
-          args.push('--single-transaction', '--set', 'ON_ERROR_STOP=on');
-          // used for progress monitoring
-          args.push('--echo-all');
+          args.push(
+            // don't commit any transaction on failure
+            '--single-transaction',
+            // exit with non-zero code on error
+            '--set',
+            'ON_ERROR_STOP=on',
+            // used for progress monitoring
+            '--echo-all',
+          );
           break;
         }
       }
@@ -283,7 +288,7 @@ export async function restoreBackup(
 
     const encoder = new TextEncoder();
     const STDIN_MARKER = encoder.encode('FROM stdin');
-    const END_MARKER = encoder.encode('\\.');
+    const END_MARKER = encoder.encode(String.raw`\.`);
 
     let linesSent = 0;
     let linesProcessed = 0;
@@ -314,13 +319,13 @@ export async function restoreBackup(
 
     passthrough.on('end', () => (inputEnded = true));
 
-    const startedAt = +new Date();
+    const startedAt = Date.now();
     const reportProgress = debounce(
       () => {
         const progress = inputEnded
           ? linesProcessed / linesSent
           : // if we're not done reading yet, just make something up that moves!
-            Math.min(0.3, 0.1 + (+new Date() - startedAt) / 1e4);
+            Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
         logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
         progressCb?.(progress);
       },

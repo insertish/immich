@@ -78,7 +78,7 @@ class Workers {
         const isLocked = rows[0].pg_try_advisory_lock;
 
         if (isLocked) {
-          sql`SELECT pg_advisory_unlock(${DatabaseLock.RestoreDatabase})`.execute(conn);
+          await sql`SELECT pg_advisory_unlock(${DatabaseLock.RestoreDatabase})`.execute(conn);
         }
 
         return isLocked;
