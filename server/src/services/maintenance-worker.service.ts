@@ -172,7 +172,7 @@ export class MaintenanceWorkerService {
 
   async getStatusWith(potentiallyAuth?: string): Promise<MaintenanceStatusResponseDto> {
     try {
-      const auth = this.login(potentiallyAuth);
+      await this.login(potentiallyAuth);
       return this.maintenanceWorkerRepository.status('private');
     } catch {
       return this.maintenanceWorkerRepository.status('public');
