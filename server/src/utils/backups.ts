@@ -106,7 +106,7 @@ export async function buildPostgresLaunchArguments(
         }
         case 'psql': {
           // don't commit any transaction on failure
-          args.push('--single-transaction');
+          args.push('--single-transaction', '--set', 'ON_ERROR_STOP=on');
           // used for progress monitoring
           args.push('--echo-all');
           break;
@@ -355,14 +355,13 @@ export async function restoreBackup(
 
         psql.on('exit', (code) => {
           if (code !== 0) {
+            logger.error(psqlLogs);
             logger.error(`Restore failed with code ${code}`);
             reject(`Restore failed with code ${code}`);
-            logger.error(psqlLogs);
             return;
           }
 
           logger.debug('psql exited with', code);
-          resolve();
         });
       }),
     ]);
