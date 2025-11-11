@@ -1,3 +1,4 @@
+import { MaintenanceOperation } from 'src/enum';
 import { ValidateString } from 'src/validation';
 
 export class MaintenanceLoginDto {
@@ -17,4 +18,10 @@ export class MaintenanceRestoreBackupDto {
 export class MaintenanceListBackupsResponseDto {
   backups!: string[];
   failedBackups!: string[];
+}
+
+export class MaintenanceStatusResponseDto {
+  operation?: MaintenanceOperation;
+  progress?: number;
+  error?: string;
 }

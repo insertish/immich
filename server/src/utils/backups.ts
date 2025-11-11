@@ -360,13 +360,18 @@ export async function restoreBackup(
 
         psql.on('exit', (code) => {
           if (code !== 0) {
-            logger.error(psqlLogs);
+            const processedLogs = psqlLogs
+              .split('\n')
+              .filter((line) => !line.includes('drop cascades'))
+              .join('\n');
+
+            logger.error(processedLogs);
             logger.error(`Restore failed with code ${code}`);
-            reject(`Restore failed with code ${code}`);
+            reject(`Restore failed with code ${code}\n${processedLogs}`);
             return;
           }
 
-          logger.debug('psql exited with', code);
+          resolve();
         });
       }),
     ]);

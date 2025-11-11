@@ -633,8 +633,12 @@ export enum DatabaseLock {
   MediaLocation = 700,
   GetSystemConfig = 69,
   BackupDatabase = 42,
-  RestoreDatabase = 621,
+  MaintenanceOperation = 621,
   MemoryCreation = 777,
+}
+
+export enum MaintenanceOperation {
+  RestoreDatabase = 'restore-database',
 }
 
 export enum ExitCode {

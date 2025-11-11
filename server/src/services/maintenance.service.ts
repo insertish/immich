@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OnEvent } from 'src/decorators';
 import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
-import { SystemMetadataKey } from 'src/enum';
+import { MaintenanceOperation, SystemMetadataKey } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
-import { MaintenanceModeOperation, MaintenanceModeState } from 'src/types';
+import { MaintenanceModeState } from 'src/types';
 import { listBackups } from 'src/utils/backups';
 import { createMaintenanceLoginUrl, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
 import { getExternalDomain } from 'src/utils/misc';
@@ -23,7 +23,10 @@ export class MaintenanceService extends BaseService {
     throw new BadRequestException('Not in maintenance mode');
   }
 
-  async startMaintenance(username: string, operation?: MaintenanceModeOperation): Promise<{ jwt: string }> {
+  async startMaintenance(
+    username: string,
+    operation?: (MaintenanceModeState & { isMaintenanceMode: true })['operation'],
+  ): Promise<{ jwt: string }> {
     const { isMaintenanceMode } = await this.getMaintenanceMode();
     if (isMaintenanceMode) {
       throw new BadRequestException('Already in maintenance mode');
@@ -79,7 +82,7 @@ export class MaintenanceService extends BaseService {
 
   async restoreBackup(username: string, filename: string): Promise<{ jwt: string }> {
     return this.startMaintenance(username, {
-      operation: 'restore-backup',
+      operation: MaintenanceOperation.RestoreDatabase,
       filename,
     });
   }

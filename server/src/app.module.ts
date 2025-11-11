@@ -9,7 +9,8 @@ import { commandsAndQuestions } from 'src/commands';
 import { IWorker } from 'src/constants';
 import { controllers } from 'src/controllers';
 import { MaintenanceWorkerController } from 'src/controllers/maintenance-worker.controller';
-import { ImmichWorker } from 'src/enum';
+import { StorageCore } from 'src/cores/storage.core';
+import { ImmichWorker, SystemMetadataKey } from 'src/enum';
 import { AuthGuard } from 'src/middleware/auth.guard';
 import { ErrorInterceptor } from 'src/middleware/error.interceptor';
 import { FileUploadInterceptor } from 'src/middleware/file-upload.interceptor';
@@ -33,6 +34,7 @@ import { AuthService } from 'src/services/auth.service';
 import { CliService } from 'src/services/cli.service';
 import { JobService } from 'src/services/job.service';
 import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
+import { MaintenanceModeState } from 'src/types';
 import { getKyselyConfig } from 'src/utils/database';
 
 const common = [...repositories, ...services, GlobalExceptionFilter];
@@ -118,12 +120,34 @@ export class ApiModule extends BaseModule {}
     { provide: IWorker, useValue: ImmichWorker.Maintenance },
   ],
 })
-export class MaintenanceModule {
+export class MaintenanceModule implements OnModuleInit {
   constructor(
     @Inject(IWorker) private worker: ImmichWorker,
     logger: LoggingRepository,
+    private maintenanceWorkerRepository: MaintenanceWorkerRepository,
+    private maintenanceWorkerService: MaintenanceWorkerService,
+    private systemMetadataRepository: SystemMetadataRepository,
   ) {
     logger.setAppName(this.worker);
+  }
+
+  async onModuleInit() {
+    StorageCore.setMediaLocation(this.maintenanceWorkerService.detectMediaLocation());
+
+    this.maintenanceWorkerRepository.setAuthFn(async (client) =>
+      this.maintenanceWorkerService.authenticate(client.request.headers),
+    );
+
+    const { secret, operation } = (await this.systemMetadataRepository.get(
+      SystemMetadataKey.MaintenanceMode,
+    )) as MaintenanceModeState & { isMaintenanceMode: true };
+
+    this.maintenanceWorkerRepository.init(secret, {
+      operation: operation?.operation,
+    });
+
+    await this.maintenanceWorkerService.logSecret();
+    void this.maintenanceWorkerService.tryStartOperation(operation);
   }
 }
 

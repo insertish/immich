@@ -10,6 +10,7 @@ import {
   ExifOrientation,
   ImageFormat,
   JobName,
+  MaintenanceOperation,
   MemoryType,
   QueueName,
   StorageFolder,
@@ -469,15 +470,14 @@ export interface MemoryData {
 
 export type VersionCheckMetadata = { checkedAt: string; releaseVersion: string };
 export type SystemFlags = { mountChecks: Record<StorageFolder, boolean> };
-export type MaintenanceModeOperation = {
-  operation: 'restore-backup';
-  filename: string;
-};
 export type MaintenanceModeState =
   | {
       isMaintenanceMode: true;
       secret: string;
-      operation?: MaintenanceModeOperation;
+      operation?: {
+        operation: MaintenanceOperation.RestoreDatabase;
+        filename: string;
+      };
     }
   | { isMaintenanceMode: false };
 export type MemoriesState = {

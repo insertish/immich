@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { configureExpress, configureTelemetry } from 'src/app.common';
 import { MaintenanceModule } from 'src/app.module';
-import { StorageCore } from 'src/cores/storage.core';
 import { MaintenanceRepository } from 'src/repositories/maintenance.repository';
 import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
 import { isStartUpError } from 'src/utils/misc';
@@ -14,16 +13,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(MaintenanceModule, { bufferLogs: true });
   app.get(MaintenanceRepository).setCloseFn(() => app.close());
 
-  const service = app.get(MaintenanceWorkerService);
-  StorageCore.setMediaLocation(service.detectMediaLocation());
-
   void configureExpress(app, {
     permitSwaggerWrite: false,
     ssr: MaintenanceWorkerService,
   });
-
-  await service.logSecret();
-  void service.tryStartOperation();
 }
 
 bootstrap().catch((error) => {

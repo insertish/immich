@@ -73,12 +73,12 @@ class Workers {
       locked = await kysely.connection().execute(async (conn) => {
         const { rows } = await sql<{
           pg_try_advisory_lock: boolean;
-        }>`SELECT pg_try_advisory_lock(${DatabaseLock.RestoreDatabase})`.execute(conn);
+        }>`SELECT pg_try_advisory_lock(${DatabaseLock.MaintenanceOperation})`.execute(conn);
 
         const isLocked = rows[0].pg_try_advisory_lock;
 
         if (isLocked) {
-          await sql`SELECT pg_advisory_unlock(${DatabaseLock.RestoreDatabase})`.execute(conn);
+          await sql`SELECT pg_advisory_unlock(${DatabaseLock.MaintenanceOperation})`.execute(conn);
         }
 
         return isLocked;

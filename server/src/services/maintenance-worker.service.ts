@@ -5,7 +5,7 @@ import { jwtVerify } from 'jose';
 import { readFileSync } from 'node:fs';
 import { IncomingHttpHeaders } from 'node:http';
 import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
-import { DatabaseLock, ImmichCookie, SystemMetadataKey } from 'src/enum';
+import { DatabaseLock, ImmichCookie, MaintenanceOperation, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
@@ -17,7 +17,7 @@ import { type ApiService as _ApiService } from 'src/services/api.service';
 import { type BaseService as _BaseService } from 'src/services/base.service';
 import { type ServerService as _ServerService } from 'src/services/server.service';
 import { type StorageService as _StorageService } from 'src/services/storage.service';
-import { MaintenanceModeOperation, MaintenanceModeState } from 'src/types';
+import { MaintenanceModeState } from 'src/types';
 import { listBackups, restoreBackup } from 'src/utils/backups';
 import { getConfig } from 'src/utils/config';
 import { createMaintenanceLoginUrl } from 'src/utils/maintenance';
@@ -129,7 +129,7 @@ export class MaintenanceWorkerService {
     const candidates = ['/data', '/usr/src/app/upload'];
 
     for (const candidate of candidates) {
-      const exists = this.maintenanceWorkerRepository.existsSync(candidate);
+      const exists = this.storageRepository.existsSync(candidate);
       if (exists) {
         targets.push(candidate);
       }
@@ -147,11 +147,7 @@ export class MaintenanceWorkerService {
    */
 
   private async secret(): Promise<string> {
-    const state = (await this.systemMetadataRepository.get(SystemMetadataKey.MaintenanceMode)) as {
-      secret: string;
-    };
-
-    return state.secret;
+    return this.maintenanceWorkerRepository.secret;
   }
 
   async logSecret(): Promise<void> {
@@ -203,11 +199,7 @@ export class MaintenanceWorkerService {
    * Operations
    */
 
-  async tryStartOperation(): Promise<void> {
-    const { operation } = (await this.systemMetadataRepository.get(SystemMetadataKey.MaintenanceMode)) as {
-      operation: MaintenanceModeOperation;
-    };
-
+  async tryStartOperation(operation: (MaintenanceModeState & { isMaintenanceMode: true })['operation']): Promise<void> {
     if (!operation) {
       return;
     }
@@ -220,6 +212,10 @@ export class MaintenanceWorkerService {
       await this.restoreBackup(operation.filename);
     } catch (error) {
       this.logger.error(`${error}`);
+      this.maintenanceWorkerRepository.emitStatus({
+        operation: operation.operation,
+        error: '' + error,
+      });
     }
   }
 
@@ -227,10 +223,13 @@ export class MaintenanceWorkerService {
    * Backups
    */
 
-  async restoreBackup(filename: string): Promise<void> {
-    await this.databaseRepository.tryLock(DatabaseLock.RestoreDatabase);
+  private async restoreBackup(filename: string): Promise<void> {
+    await this.databaseRepository.tryLock(DatabaseLock.MaintenanceOperation);
     await restoreBackup(this.backupRepos, filename, (progress) =>
-      this.maintenanceWorkerRepository.emitProgress('restore-backup', progress),
+      this.maintenanceWorkerRepository.emitStatus({
+        operation: MaintenanceOperation.RestoreDatabase,
+        progress,
+      }),
     );
 
     this.maintenanceWorkerRepository.restartApp({
