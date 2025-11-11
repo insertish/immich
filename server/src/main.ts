@@ -1,11 +1,11 @@
-import { Kysely } from 'kysely';
+import { Kysely, sql } from 'kysely';
 import { CommandFactory } from 'nest-commander';
 import { ChildProcess, fork } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { Worker } from 'node:worker_threads';
 import { PostgresError } from 'postgres';
 import { ImmichAdminModule } from 'src/app.module';
-import { ExitCode, ImmichWorker, LogLevel, SystemMetadataKey } from 'src/enum';
+import { DatabaseLock, ExitCode, ImmichWorker, LogLevel, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
 import { type DB } from 'src/schema';
@@ -29,9 +29,6 @@ class Workers {
     this.workers = {};
   }
 
-  /**
-   * Boot all enabled workers
-   */
   async bootstrap() {
     const isMaintenanceMode = await this.isMaintenanceMode();
     const { workers } = new ConfigRepository().getEnv();
@@ -39,16 +36,14 @@ class Workers {
     if (isMaintenanceMode) {
       this.startWorker(ImmichWorker.Maintenance);
     } else {
+      await this.waitForFreeLock();
+
       for (const worker of workers) {
         this.startWorker(worker);
       }
     }
   }
 
-  /**
-   * Initialise a short-lived Nest application to build configuration
-   * @returns System configuration
-   */
   private async isMaintenanceMode(): Promise<boolean> {
     const { database } = new ConfigRepository().getEnv();
     const kysely = new Kysely<DB>(getKyselyConfig(database.config));
@@ -67,6 +62,30 @@ class Workers {
     } finally {
       await kysely.destroy();
     }
+  }
+
+  private async waitForFreeLock() {
+    const { database } = new ConfigRepository().getEnv();
+    const kysely = new Kysely<DB>(getKyselyConfig(database.config));
+
+    let locked = false;
+    while (!locked) {
+      locked = await kysely.connection().execute(async (conn) => {
+        const { rows } = await sql<{
+          pg_try_advisory_lock: boolean;
+        }>`SELECT pg_try_advisory_lock(${DatabaseLock.RestoreDatabase})`.execute(conn);
+
+        const isLocked = rows[0].pg_try_advisory_lock;
+
+        if (isLocked) {
+          sql`SELECT pg_advisory_unlock(${DatabaseLock.RestoreDatabase})`.execute(conn);
+        }
+
+        return isLocked;
+      });
+    }
+
+    await kysely.destroy();
   }
 
   /**
