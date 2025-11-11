@@ -7,6 +7,7 @@ import {
   MaintenanceListBackupsResponseDto,
   MaintenanceLoginDto,
   MaintenanceRestoreBackupDto,
+  MaintenanceStatusResponseDto,
 } from 'src/dtos/maintenance.dto';
 import { ImmichCookie, Permission } from 'src/enum';
 import { Auth, Authenticated } from 'src/middleware/auth.guard';
@@ -16,6 +17,11 @@ import { MaintenanceService } from 'src/services/maintenance.service';
 @Controller('admin/maintenance')
 export class MaintenanceController {
   constructor(private service: MaintenanceService) {}
+
+  @Get('status')
+  maintenanceStatus(): MaintenanceStatusResponseDto {
+    return {};
+  }
 
   @Post('login')
   maintenanceLogin(@Body() _dto: MaintenanceLoginDto): MaintenanceAuthDto {

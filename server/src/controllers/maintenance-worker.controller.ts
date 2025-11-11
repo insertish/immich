@@ -6,6 +6,7 @@ import {
   MaintenanceListBackupsResponseDto,
   MaintenanceLoginDto,
   MaintenanceRestoreBackupDto,
+  MaintenanceStatusResponseDto,
 } from 'src/dtos/maintenance.dto';
 import { ServerConfigDto } from 'src/dtos/server.dto';
 import { ImmichCookie } from 'src/enum';
@@ -20,6 +21,11 @@ export class MaintenanceWorkerController {
   @Get('server/config')
   getServerConfig(): Promise<ServerConfigDto> {
     return this.service.getSystemConfig();
+  }
+
+  @Get('admin/maintenance/status')
+  maintenanceStatus(@Req() request: Request): Promise<MaintenanceStatusResponseDto> {
+    return this.service.getStatusWith(request.cookies[ImmichCookie.MaintenanceToken]);
   }
 
   @Post('admin/maintenance/login')

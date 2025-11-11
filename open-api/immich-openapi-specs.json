@@ -402,6 +402,27 @@
         "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
+    "/admin/maintenance/status": {
+      "get": {
+        "operationId": "maintenanceStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceStatusResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Maintenance (admin)"
+        ]
+      }
+    },
     "/admin/notifications": {
       "post": {
         "operationId": "createNotification",
@@ -12784,6 +12805,23 @@
         "required": [
           "backup"
         ],
+        "type": "object"
+      },
+      "MaintenanceStatusResponseDto": {
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "restore-database"
+            ],
+            "type": "string"
+          },
+          "progress": {
+            "type": "number"
+          }
+        },
         "type": "object"
       },
       "ManualJobName": {

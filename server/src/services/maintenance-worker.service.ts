@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { jwtVerify } from 'jose';
 import { readFileSync } from 'node:fs';
 import { IncomingHttpHeaders } from 'node:http';
-import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
+import { MaintenanceAuthDto, MaintenanceStatusResponseDto } from 'src/dtos/maintenance.dto';
 import { DatabaseLock, ImmichCookie, MaintenanceOperation, SystemMetadataKey } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
@@ -168,6 +168,15 @@ export class MaintenanceWorkerService {
   async authenticate(headers: IncomingHttpHeaders): Promise<MaintenanceAuthDto> {
     const jwtToken = parse(headers.cookie || '')[ImmichCookie.MaintenanceToken];
     return this.login(jwtToken);
+  }
+
+  async getStatusWith(potentiallyAuth?: string): Promise<MaintenanceStatusResponseDto> {
+    try {
+      const auth = this.login(potentiallyAuth);
+      return this.maintenanceWorkerRepository.status('private');
+    } catch {
+      return this.maintenanceWorkerRepository.status('public');
+    }
   }
 
   async login(jwt?: string): Promise<MaintenanceAuthDto> {

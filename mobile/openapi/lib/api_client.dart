@@ -398,6 +398,8 @@ class ApiClient {
           return MaintenanceLoginDto.fromJson(value);
         case 'MaintenanceRestoreBackupDto':
           return MaintenanceRestoreBackupDto.fromJson(value);
+        case 'MaintenanceStatusResponseDto':
+          return MaintenanceStatusResponseDto.fromJson(value);
         case 'ManualJobName':
           return ManualJobNameTypeTransformer().decode(value);
         case 'MapMarkerResponseDto':

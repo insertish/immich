@@ -154,6 +154,7 @@ Class | Method | HTTP request | Description
 *MaintenanceAdminApi* | [**endMaintenance**](doc//MaintenanceAdminApi.md#endmaintenance) | **POST** /admin/maintenance/end | 
 *MaintenanceAdminApi* | [**listBackups**](doc//MaintenanceAdminApi.md#listbackups) | **GET** /admin/maintenance/backups/list | 
 *MaintenanceAdminApi* | [**maintenanceLogin**](doc//MaintenanceAdminApi.md#maintenancelogin) | **POST** /admin/maintenance/login | 
+*MaintenanceAdminApi* | [**maintenanceStatus**](doc//MaintenanceAdminApi.md#maintenancestatus) | **GET** /admin/maintenance/status | 
 *MaintenanceAdminApi* | [**restoreBackup**](doc//MaintenanceAdminApi.md#restorebackup) | **POST** /admin/maintenance/backups/restore | 
 *MaintenanceAdminApi* | [**startMaintenance**](doc//MaintenanceAdminApi.md#startmaintenance) | **POST** /admin/maintenance/start | 
 *MapApi* | [**getMapMarkers**](doc//MapApi.md#getmapmarkers) | **GET** /map/markers | 
@@ -409,6 +410,7 @@ Class | Method | HTTP request | Description
  - [MaintenanceListBackupsResponseDto](doc//MaintenanceListBackupsResponseDto.md)
  - [MaintenanceLoginDto](doc//MaintenanceLoginDto.md)
  - [MaintenanceRestoreBackupDto](doc//MaintenanceRestoreBackupDto.md)
+ - [MaintenanceStatusResponseDto](doc//MaintenanceStatusResponseDto.md)
  - [ManualJobName](doc//ManualJobName.md)
  - [MapMarkerResponseDto](doc//MapMarkerResponseDto.md)
  - [MapReverseGeocodeResponseDto](doc//MapReverseGeocodeResponseDto.md)

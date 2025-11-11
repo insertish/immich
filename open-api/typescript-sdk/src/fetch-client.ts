@@ -53,6 +53,11 @@ export type MaintenanceLoginDto = {
 export type MaintenanceAuthDto = {
     username: string;
 };
+export type MaintenanceStatusResponseDto = {
+    error?: string;
+    operation?: Operation;
+    progress?: number;
+};
 export type NotificationCreateDto = {
     data?: object;
     description?: string | null;
@@ -1814,6 +1819,14 @@ export function startMaintenance(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/start", {
         ...opts,
         method: "POST"
+    }));
+}
+export function maintenanceStatus(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: MaintenanceStatusResponseDto;
+    }>("/admin/maintenance/status", {
+        ...opts
     }));
 }
 export function createNotification({ notificationCreateDto }: {
@@ -4807,6 +4820,9 @@ export enum UserAvatarColor {
     Orange = "orange",
     Gray = "gray",
     Amber = "amber"
+}
+export enum Operation {
+    RestoreDatabase = "restore-database"
 }
 export enum NotificationLevel {
     Success = "success",
