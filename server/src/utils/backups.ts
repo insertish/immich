@@ -38,16 +38,7 @@ export async function buildPostgresLaunchArguments(
   bin: 'pg_dump' | 'pg_dumpall' | 'psql',
 ): Promise<{
   bin: string;
-  args: (config?: {
-    /**
-     * @deprecated
-     */
-    database?: string;
-    /**
-     * @deprecated
-     */
-    user?: string;
-  }) => string[];
+  args: string[];
   databasePassword: string;
   databaseIsSupported: boolean;
   databaseVersion: string;
@@ -62,64 +53,62 @@ export async function buildPostgresLaunchArguments(
   const databaseSemver = semver.coerce(databaseVersion);
   const databaseMajorVersion = databaseSemver?.major;
 
+  const args: string[] = [];
+
+  if (isUrlConnection) {
+    if (bin !== 'pg_dump') {
+      args.push('--dbname');
+    }
+
+    args.push(databaseConfig.url);
+    // nb. doesn't replace database/user
+  } else {
+    args.push(
+      '--username',
+      databaseConfig.username,
+      '--host',
+      databaseConfig.host,
+      '--port',
+      databaseConfig.port.toString(),
+    );
+
+    switch (bin) {
+      case 'pg_dumpall': {
+        args.push('--database');
+        break;
+      }
+      case 'psql': {
+        args.push('--dbname');
+        break;
+      }
+    }
+
+    args.push(databaseConfig.database);
+  }
+
+  switch (bin) {
+    case 'pg_dump':
+    case 'pg_dumpall': {
+      args.push('--clean', '--if-exists');
+      break;
+    }
+    case 'psql': {
+      args.push(
+        // don't commit any transaction on failure
+        '--single-transaction',
+        // exit with non-zero code on error
+        '--set',
+        'ON_ERROR_STOP=on',
+        // used for progress monitoring
+        '--echo-all',
+      );
+      break;
+    }
+  }
+
   return {
     bin: `/usr/lib/postgresql/${databaseMajorVersion}/bin/${bin}`,
-    args({ database, user } = {}) {
-      const args: string[] = [];
-
-      if (isUrlConnection) {
-        if (bin !== 'pg_dump') {
-          args.push('--dbname');
-        }
-
-        args.push(databaseConfig.url);
-        // nb. doesn't replace database/user
-      } else {
-        args.push(
-          '--username',
-          user ?? databaseConfig.username,
-          '--host',
-          databaseConfig.host,
-          '--port',
-          databaseConfig.port.toString(),
-        );
-
-        switch (bin) {
-          case 'pg_dumpall': {
-            args.push('--database');
-            break;
-          }
-          case 'psql': {
-            args.push('--dbname');
-            break;
-          }
-        }
-
-        args.push(database ?? databaseConfig.database);
-      }
-
-      switch (bin) {
-        case 'pg_dump':
-        case 'pg_dumpall': {
-          args.push('--clean', '--if-exists');
-          break;
-        }
-        case 'psql': {
-          args.push(
-            // don't commit any transaction on failure
-            '--single-transaction',
-            // exit with non-zero code on error
-            '--set',
-            'ON_ERROR_STOP=on',
-            // used for progress monitoring
-            '--echo-all',
-          );
-          break;
-        }
-      }
-
-      return args;
-    },
+    args,
     databasePassword: isUrlConnection ? new URL(databaseConfig.url).password : databaseConfig.password,
     databaseIsSupported:
       (databaseMajorVersion && databaseSemver && semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) === true,
@@ -151,7 +140,7 @@ export async function createBackup(
 
   try {
     await new Promise<void>((resolve, reject) => {
-      const pgdump = processRepository.spawn(bin, args(), {
+      const pgdump = processRepository.spawn(bin, args, {
         env: {
           PATH: process.env.PATH,
           PGPASSWORD: databasePassword,
@@ -254,7 +243,7 @@ export async function restoreBackup(
 
     logger.log(`Database Restore Starting.`);
 
-    const psql = processRepository.spawn(bin, args(), {
+    const psql = processRepository.spawn(bin, args, {
       env: {
         PATH: process.env.PATH,
         PGPASSWORD: databasePassword,
