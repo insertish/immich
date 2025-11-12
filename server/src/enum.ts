@@ -639,6 +639,7 @@ export enum DatabaseLock {
 
 export enum MaintenanceOperation {
   RestoreDatabase = 'restore-database',
+  RestoreDatabaseFlow = 'restore-database-flow',
 }
 
 export enum ExitCode {

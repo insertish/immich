@@ -474,10 +474,14 @@ export type MaintenanceModeState =
   | {
       isMaintenanceMode: true;
       secret: string;
-      operation?: {
-        operation: MaintenanceOperation.RestoreDatabase;
-        filename: string;
-      };
+      operation?:
+        | {
+            operation: MaintenanceOperation.RestoreDatabase;
+            filename: string;
+          }
+        | {
+            operation: MaintenanceOperation.RestoreDatabaseFlow;
+          };
     }
   | { isMaintenanceMode: false };
 export type MemoriesState = {

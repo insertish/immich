@@ -47,6 +47,17 @@ export class MaintenanceService extends BaseService {
     };
   }
 
+  async startRestoreFlow(): Promise<{ jwt: string }> {
+    const adminUser = await this.userRepository.getAdmin();
+    if (adminUser) {
+      throw new BadRequestException('The server already has an admin');
+    }
+
+    return this.startMaintenance('admin', {
+      operation: MaintenanceOperation.RestoreDatabaseFlow,
+    });
+  }
+
   endMaintenance(): void {
     throw new BadRequestException('Not in maintenance mode');
   }

@@ -38,6 +38,12 @@ export class MaintenanceController {
     response.cookie(ImmichCookie.MaintenanceToken, jwt);
   }
 
+  @Post('start/restore')
+  async startRestoreFlow(@Res({ passthrough: true }) response: Response): Promise<void> {
+    const { jwt } = await this.service.startRestoreFlow();
+    response.cookie(ImmichCookie.MaintenanceToken, jwt);
+  }
+
   @Post('end')
   @Authenticated({ permission: Permission.Maintenance, admin: true })
   endMaintenance(): void {

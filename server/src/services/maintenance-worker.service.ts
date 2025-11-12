@@ -206,16 +206,21 @@ export class MaintenanceWorkerService {
 
     this.logger.log(`Starting maintenance operation ${operation.operation}!`);
 
-    // remove `operations` block to prevent:
-    // => restored `auto backup dump` from running operation on restore
-    // => maintenance worker attempting to restart operation on restart
-    await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
-      isMaintenanceMode: true,
-      secret: this.maintenanceWorkerRepository.secret,
-    });
+    if (operation.operation !== MaintenanceOperation.RestoreDatabaseFlow) {
+      // remove `operations` block to prevent:
+      // => restored `auto backup dump` from running operation on restore
+      // => maintenance worker attempting to restart operation on restart
+      await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
+        isMaintenanceMode: true,
+        secret: this.maintenanceWorkerRepository.secret,
+      });
+    }
 
     try {
-      await this.restoreBackup(operation.filename);
+      switch (operation.operation) {
+        case MaintenanceOperation.RestoreDatabase:
+          await this.restoreBackup(operation.filename);
+      }
     } catch (error) {
       this.logger.error(`${error}`);
       this.maintenanceWorkerRepository.emitStatus({
@@ -230,6 +235,11 @@ export class MaintenanceWorkerService {
    */
 
   private async restoreBackup(filename: string): Promise<void> {
+    this.maintenanceWorkerRepository.emitStatus({
+      operation: MaintenanceOperation.RestoreDatabase,
+      progress: 0,
+    });
+
     await restoreBackup(this.backupRepos, filename, (action, progress) =>
       this.maintenanceWorkerRepository.emitStatus({
         operation: MaintenanceOperation.RestoreDatabase,
