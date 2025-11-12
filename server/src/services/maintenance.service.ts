@@ -19,10 +19,6 @@ export class MaintenanceService extends BaseService {
       .then((state) => state ?? { isMaintenanceMode: false });
   }
 
-  login(): MaintenanceAuthDto {
-    throw new BadRequestException('Not in maintenance mode');
-  }
-
   async startMaintenance(
     username: string,
     operation?: (MaintenanceModeState & { isMaintenanceMode: true })['operation'],
@@ -56,10 +52,6 @@ export class MaintenanceService extends BaseService {
     return this.startMaintenance('admin', {
       operation: MaintenanceOperation.RestoreDatabaseFlow,
     });
-  }
-
-  endMaintenance(): void {
-    throw new BadRequestException('Not in maintenance mode');
   }
 
   @OnEvent({ name: 'AppRestart', server: true })

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import {
@@ -44,7 +44,7 @@ export class MaintenanceWorkerController {
   @Post('admin/maintenance/start')
   @MaintenanceRoute()
   startMaintenance(): void {
-    this.service.startMaintenance();
+    throw new BadRequestException('Already in maintenance mode');
   }
 
   @Post('admin/maintenance/end')

@@ -16,10 +16,7 @@ class MaintenanceAdminApi {
 
   final ApiClient apiClient;
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
-  /// Note: This method returns the HTTP [Response].
-  ///
+  /// Performs an HTTP 'DELETE /admin/maintenance/backups/{filename}' operation and returns the [Response].
   /// Parameters:
   ///
   /// * [String] filename (required):
@@ -49,8 +46,6 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
   /// Parameters:
   ///
   /// * [String] filename (required):
@@ -61,9 +56,7 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
-  /// Note: This method returns the HTTP [Response].
+  /// Performs an HTTP 'POST /admin/maintenance/end' operation and returns the [Response].
   Future<Response> endMaintenanceWithHttpInfo() async {
     // ignore: prefer_const_declarations
     final apiPath = r'/admin/maintenance/end';
@@ -89,7 +82,6 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   Future<void> endMaintenance() async {
     final response = await endMaintenanceWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
@@ -97,9 +89,7 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
-  /// Note: This method returns the HTTP [Response].
+  /// Performs an HTTP 'GET /admin/maintenance/backups/list' operation and returns the [Response].
   Future<Response> listBackupsWithHttpInfo() async {
     // ignore: prefer_const_declarations
     final apiPath = r'/admin/maintenance/backups/list';
@@ -125,7 +115,6 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   Future<MaintenanceListBackupsResponseDto?> listBackups() async {
     final response = await listBackupsWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
@@ -229,10 +218,7 @@ class MaintenanceAdminApi {
     return null;
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
-  /// Note: This method returns the HTTP [Response].
-  ///
+  /// Performs an HTTP 'POST /admin/maintenance/backups/restore' operation and returns the [Response].
   /// Parameters:
   ///
   /// * [MaintenanceRestoreBackupDto] maintenanceRestoreBackupDto (required):
@@ -261,8 +247,6 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
   /// Parameters:
   ///
   /// * [MaintenanceRestoreBackupDto] maintenanceRestoreBackupDto (required):
@@ -273,9 +257,7 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
-  ///
-  /// Note: This method returns the HTTP [Response].
+  /// Performs an HTTP 'POST /admin/maintenance/start' operation and returns the [Response].
   Future<Response> startMaintenanceWithHttpInfo() async {
     // ignore: prefer_const_declarations
     final apiPath = r'/admin/maintenance/start';
@@ -301,7 +283,6 @@ class MaintenanceAdminApi {
     );
   }
 
-  /// This endpoint is an admin-only route, and requires the `maintenance` permission.
   Future<void> startMaintenance() async {
     final response = await startMaintenanceWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
