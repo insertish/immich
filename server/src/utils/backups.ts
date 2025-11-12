@@ -128,12 +128,10 @@ export async function buildPostgresLaunchArguments(
   };
 }
 
-export async function createBackup({
-  logger,
-  storage,
-  process: processRepository,
-  ...pgRepos
-}: BackupRepos): Promise<JobStatus> {
+export async function createBackup(
+  { logger, storage, process: processRepository, ...pgRepos }: BackupRepos,
+  suffix?: string,
+): Promise<JobStatus> {
   logger.debug(`Database Backup Started`);
 
   const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
@@ -148,7 +146,7 @@ export async function createBackup({
 
   const backupFilePath = join(
     StorageCore.getBaseFolder(StorageFolder.Backups),
-    `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}.sql.gz.tmp`,
+    `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}${suffix}.sql.gz.tmp`,
   );
 
   try {
@@ -231,7 +229,7 @@ export async function restoreBackup(
   logger.debug(`Database Restore Started`);
 
   try {
-    if (!isValidBackupName(filename)) {
+    if (!isValidBackupName(filename) && !filename.startsWith('development-')) {
       // if we want to allow custom file names
       // replace this with a check that we aren't
       // traversing out of the backup directory
@@ -252,7 +250,7 @@ export async function restoreBackup(
     await storage.stat(backupFilePath); // => check file exists
 
     progressCb?.('backup', 0.05);
-    await createBackup({ logger, storage, process: processRepository, ...pgRepos });
+    await createBackup({ logger, storage, process: processRepository, ...pgRepos }, '-maintenance');
 
     logger.log(`Database Restore Starting.`);
 
@@ -401,7 +399,7 @@ export async function listBackups({
 
   return {
     backups: files
-      .filter((fn) => isValidBackupName(fn))
+      .filter((fn) => isValidBackupName(fn) || fn.startsWith('development-'))
       .sort()
       .toReversed(),
     failedBackups: files.filter((fn) => isFailedBackupName(fn)),

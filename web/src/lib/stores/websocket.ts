@@ -85,7 +85,7 @@ websocket
 
 export const openWebsocketConnection = () => {
   try {
-    if (get(user) || page.url.pathname.startsWith(AppRoute.MAINTENANCE)) {
+    if (get(user) || get(websocketStore.serverRestarting) || page.url.pathname.startsWith(AppRoute.MAINTENANCE)) {
       websocket.connect();
     }
   } catch (error) {

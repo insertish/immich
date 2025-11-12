@@ -9,15 +9,7 @@ export const load = (async ({ url }) => {
   const $t = await getFormatter();
 
   return {
-    backups: backups.map((filename) => {
-      const date = /(\d{4})(\d{2})(\d{2})T/.exec(filename);
-      const daysAgo = date ? Math.floor((+new Date() - +new Date(`${date[1]}-${date[2]}-${date[3]}`)) / 864e5) : null;
-
-      return {
-        filename,
-        daysAgo,
-      };
-    }),
+    backups,
     meta: {
       title: $t('admin.maintenance_settings'),
     },

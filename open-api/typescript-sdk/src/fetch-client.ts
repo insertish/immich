@@ -1834,6 +1834,12 @@ export function startMaintenance(opts?: Oazapfts.RequestOpts) {
         method: "POST"
     }));
 }
+export function startRestoreFlow(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/start/restore", {
+        ...opts,
+        method: "POST"
+    }));
+}
 export function maintenanceStatus(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
@@ -4835,7 +4841,8 @@ export enum UserAvatarColor {
     Amber = "amber"
 }
 export enum Operation {
-    RestoreDatabase = "restore-database"
+    RestoreDatabase = "restore-database",
+    RestoreDatabaseFlow = "restore-database-flow"
 }
 export enum NotificationLevel {
     Success = "success",

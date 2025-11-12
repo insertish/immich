@@ -440,6 +440,20 @@
         "description": "This endpoint is an admin-only route, and requires the `maintenance` permission."
       }
     },
+    "/admin/maintenance/start/restore": {
+      "post": {
+        "operationId": "startRestoreFlow",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Maintenance (admin)"
+        ]
+      }
+    },
     "/admin/maintenance/status": {
       "get": {
         "operationId": "maintenanceStatus",
@@ -12858,7 +12872,8 @@
           },
           "operation": {
             "enum": [
-              "restore-database"
+              "restore-database",
+              "restore-database-flow"
             ],
             "type": "string"
           },

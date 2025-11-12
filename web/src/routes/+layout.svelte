@@ -73,16 +73,17 @@
   afterNavigate(() => {
     showNavigationLoadingBar = false;
   });
+
+  const semverToName = ({ major, minor, patch }: ServerVersionResponseDto) => `v${major}.${minor}.${patch}`;
+  const { release, serverRestarting } = websocketStore;
+
   run(() => {
-    if ($user || page.url.pathname.startsWith(AppRoute.MAINTENANCE)) {
+    if ($user || $serverRestarting || page.url.pathname.startsWith(AppRoute.MAINTENANCE)) {
       openWebsocketConnection();
     } else {
       closeWebsocketConnection();
     }
   });
-
-  const semverToName = ({ major, minor, patch }: ServerVersionResponseDto) => `v${major}.${minor}.${patch}`;
-  const { release, serverRestarting } = websocketStore;
 
   const handleRelease = async (release?: ReleaseEvent) => {
     if (!release?.isAvailable || !$user.isAdmin) {

@@ -181,11 +181,13 @@ class MaintenanceStatusResponseDtoOperationEnum {
 
   String toJson() => value;
 
-  static const restoreDatabase = MaintenanceStatusResponseDtoOperationEnum._(r'restore-database');
+  static const database = MaintenanceStatusResponseDtoOperationEnum._(r'restore-database');
+  static const databaseFlow = MaintenanceStatusResponseDtoOperationEnum._(r'restore-database-flow');
 
   /// List of all possible values in this [enum][MaintenanceStatusResponseDtoOperationEnum].
   static const values = <MaintenanceStatusResponseDtoOperationEnum>[
-    restoreDatabase,
+    database,
+    databaseFlow,
   ];
 
   static MaintenanceStatusResponseDtoOperationEnum? fromJson(dynamic value) => MaintenanceStatusResponseDtoOperationEnumTypeTransformer().decode(value);
@@ -224,7 +226,8 @@ class MaintenanceStatusResponseDtoOperationEnumTypeTransformer {
   MaintenanceStatusResponseDtoOperationEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'restore-database': return MaintenanceStatusResponseDtoOperationEnum.restoreDatabase;
+        case r'restore-database': return MaintenanceStatusResponseDtoOperationEnum.database;
+        case r'restore-database-flow': return MaintenanceStatusResponseDtoOperationEnum.databaseFlow;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');

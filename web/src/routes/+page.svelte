@@ -1,13 +1,19 @@
 <script lang="ts">
   import AuthPageLayout from '$lib/components/layouts/AuthPageLayout.svelte';
   import { AppRoute } from '$lib/constants';
+  import { websocketStore } from '$lib/stores/websocket';
   import { handleError } from '$lib/utils/handle-error';
+  import { startRestoreFlow } from '@immich/sdk';
   import { Button, Heading, Stack } from '@immich/ui';
   import { t } from 'svelte-i18n';
 
-  function switchToMaintenance() {
+  async function switchToMaintenance() {
     try {
-      // special route to start restore flow
+      websocketStore.serverRestarting.set({
+        isMaintenanceMode: true,
+      });
+
+      await startRestoreFlow();
     } catch (error) {
       handleError(error, $t('admin.maintenance_start_error'));
     }

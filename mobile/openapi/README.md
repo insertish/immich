@@ -158,6 +158,7 @@ Class | Method | HTTP request | Description
 *MaintenanceAdminApi* | [**maintenanceStatus**](doc//MaintenanceAdminApi.md#maintenancestatus) | **GET** /admin/maintenance/status | 
 *MaintenanceAdminApi* | [**restoreBackup**](doc//MaintenanceAdminApi.md#restorebackup) | **POST** /admin/maintenance/backups/restore | 
 *MaintenanceAdminApi* | [**startMaintenance**](doc//MaintenanceAdminApi.md#startmaintenance) | **POST** /admin/maintenance/start | 
+*MaintenanceAdminApi* | [**startRestoreFlow**](doc//MaintenanceAdminApi.md#startrestoreflow) | **POST** /admin/maintenance/start/restore | 
 *MapApi* | [**getMapMarkers**](doc//MapApi.md#getmapmarkers) | **GET** /map/markers | 
 *MapApi* | [**reverseGeocode**](doc//MapApi.md#reversegeocode) | **GET** /map/reverse-geocode | 
 *MemoriesApi* | [**addMemoryAssets**](doc//MemoriesApi.md#addmemoryassets) | **PUT** /memories/{id}/assets | 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import AuthPageLayout from '$lib/components/layouts/AuthPageLayout.svelte';
+  import MaintenanceBackupsList from '$lib/components/maintenance/MaintenanceBackupsList.svelte';
   import FormatMessage from '$lib/elements/FormatMessage.svelte';
   import { maintenanceStore } from '$lib/stores/maintenance.store';
   import { handleError } from '$lib/utils/handle-error';
@@ -25,9 +26,9 @@
   const { auth, status } = maintenanceStore;
 </script>
 
-<AuthPageLayout>
+<AuthPageLayout title={$t('maintenance_title')} withHeader={!$status.operation}>
   <div class="flex flex-col place-items-center text-center gap-4">
-    {#if $status.operation}
+    {#if $status.operation === 'restore-database'}
       <Heading size="large" color="primary" tag="h1">Restoring Database</Heading>
       {#if $status.error}
         <Scrollable>
@@ -40,10 +41,17 @@
             style="width: {($status.progress || 0) * 100}%"
           ></div>
         </div>
-        <Text>{$t(`maintenance_operation_${$status.action as 'backup' | 'restore'}`)}</Text>
+        {#if $status.action}
+          <Text>{$t(`maintenance_operation_${$status.action as 'backup' | 'restore'}`)}</Text>
+        {/if}
       {/if}
+    {:else if $status.operation === 'restore-database-flow'}
+      <Heading size="large" color="primary" tag="h1">Restore From Backup</Heading>
+      <Scrollable class="max-h-[320px]">
+        <MaintenanceBackupsList />
+      </Scrollable>
+      <Button onclick={end}>Cancel</Button>
     {:else}
-      <Heading size="large" color="primary" tag="h1">{$t('maintenance_title')}</Heading>
       <p>
         <FormatMessage key="maintenance_description">
           {#snippet children({ tag, message })}
@@ -55,13 +63,15 @@
           {/snippet}
         </FormatMessage>
       </p>
-      <p>
-        {$t('maintenance_logged_in_as', {
-          values: {
-            user: $auth.username,
-          },
-        })}
-      </p>
+      {#if $auth}
+        <p>
+          {$t('maintenance_logged_in_as', {
+            values: {
+              user: $auth.username,
+            },
+          })}
+        </p>
+      {/if}
     {/if}
     {#if $auth && (!$status.operation || $status.error)}
       <Button onclick={end}>{$t('maintenance_end')}</Button>
