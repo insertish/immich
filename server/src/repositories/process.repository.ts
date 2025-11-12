@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ChildProcessWithoutNullStreams, spawn, SpawnOptionsWithoutStdio } from 'node:child_process';
 import { Duplex } from 'node:stream';
-import { promiseChildProcess } from 'src/utils/process';
 
 @Injectable()
 export class ProcessRepository {
@@ -56,9 +55,14 @@ export class ProcessRepository {
     process.stdin.on('error', handleError);
     process.stdout.on('error', handleError);
 
-    promiseChildProcess(process)
-      .then(() => duplex.push(null))
-      .catch(handleError);
+    let stderr = '';
+    process.stderr.on('data', (chunk) => (stderr += chunk));
+
+    process.on('exit', (code) => {
+      if (code !== 0) {
+        handleError(`${command} non-zero exit code (${code})\n${stderr}`);
+      }
+    });
 
     duplex.process = process;
     return duplex;
