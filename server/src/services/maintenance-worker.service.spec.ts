@@ -16,6 +16,9 @@ describe(MaintenanceWorkerService.name, () => {
     sut = new MaintenanceWorkerService(
       mocks.logger as never,
       mocks.config,
+      mocks.storage as never,
+      mocks.process,
+      mocks.database as never,
       mocks.systemMetadata as never,
       maintenanceWorkerRepositoryMock,
     );
