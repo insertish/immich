@@ -147,7 +147,7 @@ export async function createBackup(
     const gzip = processRepository.createSpawnDuplexStream('gzip', ['--rsyncable']);
     const fileStream = storage.createWriteStream(backupFilePath);
 
-    await pipeline([pgdump, gzip, fileStream]);
+    await pipeline(pgdump, gzip, fileStream);
     await storage.rename(backupFilePath, backupFilePath.replace('.tmp', ''));
   } catch (error) {
     logger.error(`Database Backup Failure: ${error}`);
