@@ -8,6 +8,7 @@
 
   interface Props {
     backups?: string[];
+    showDelete?: boolean;
   }
 
   let props: Props = $props();
@@ -103,12 +104,14 @@
           <Button size="small" disabled={deleting.has(backup.filename)} onclick={() => restore(backup.filename)}
             >Restore</Button
           >
-          <Button
-            size="small"
-            color="danger"
-            disabled={deleting.has(backup.filename)}
-            onclick={() => remove(backup.filename)}>Delete</Button
-          >
+          {#if props.showDelete}
+            <Button
+              size="small"
+              color="danger"
+              disabled={deleting.has(backup.filename)}
+              onclick={() => remove(backup.filename)}>Delete</Button
+            >
+          {/if}
         </HStack>
       </CardBody>
     </Card>

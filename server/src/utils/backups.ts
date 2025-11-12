@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
 import { DateTime } from 'luxon';
 import path, { join } from 'node:path';
-import { PassThrough, Readable } from 'node:stream';
+import { PassThrough, Readable, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import semver from 'semver';
@@ -13,7 +13,6 @@ import { DatabaseRepository } from 'src/repositories/database.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { ProcessRepository } from 'src/repositories/process.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
-import { TransformCallback } from 'stream';
 
 export function isValidBackupName(filename: string) {
   const oldBackupStyle = filename.match(/immich-db-backup-\d+\.sql\.gz$/);
@@ -121,7 +120,7 @@ export async function buildPostgresLaunchArguments(
 
 export async function createBackup(
   { logger, storage, process: processRepository, ...pgRepos }: BackupRepos,
-  filenameSuffix?: string,
+  filenameSuffix: string = '',
 ): Promise<void> {
   logger.debug(`Database Backup Started`);
 
@@ -138,64 +137,17 @@ export async function createBackup(
   );
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      const pgdump = processRepository.spawn(bin, args, {
-        env: {
-          PATH: process.env.PATH,
-          PGPASSWORD: databasePassword,
-        },
-      });
-
-      // NOTE: `--rsyncable` is only supported in GNU gzip
-      const gzip = processRepository.spawn(`gzip`, ['--rsyncable']);
-      pgdump.stdout.pipe(gzip.stdin);
-
-      const fileStream = storage.createWriteStream(backupFilePath);
-
-      gzip.stdout.pipe(fileStream);
-
-      pgdump.on('error', (err) => {
-        logger.error(`Backup failed with error: ${err}`);
-        reject(err);
-      });
-
-      gzip.on('error', (err) => {
-        logger.error(`Gzip failed with error: ${err}`);
-        reject(err);
-      });
-
-      let pgdumpLogs = '';
-      let gzipLogs = '';
-
-      pgdump.stderr.on('data', (data) => (pgdumpLogs += data));
-      gzip.stderr.on('data', (data) => (gzipLogs += data));
-
-      pgdump.on('exit', (code) => {
-        if (code !== 0) {
-          logger.error(`Backup failed with code ${code}`);
-          reject(`Backup failed with code ${code}`);
-          logger.error(pgdumpLogs);
-          return;
-        }
-        if (pgdumpLogs) {
-          logger.debug(`pgdump_all logs\n${pgdumpLogs}`);
-        }
-      });
-
-      gzip.on('exit', (code) => {
-        if (code !== 0) {
-          logger.error(`Gzip failed with code ${code}`);
-          reject(`Gzip failed with code ${code}`);
-          logger.error(gzipLogs);
-          return;
-        }
-        if (pgdump.exitCode !== 0) {
-          logger.error(`Gzip exited with code 0 but pgdump exited with ${pgdump.exitCode}`);
-          return;
-        }
-        resolve();
-      });
+    const pgdump = processRepository.createSpawnDuplexStream(bin, args, {
+      env: {
+        PATH: process.env.PATH,
+        PGPASSWORD: databasePassword,
+      },
     });
+
+    const gzip = processRepository.createSpawnDuplexStream('gzip', ['--rsyncable']);
+    const fileStream = storage.createWriteStream(backupFilePath);
+
+    await pipeline([pgdump, gzip, fileStream]);
     await storage.rename(backupFilePath, backupFilePath.replace('.tmp', ''));
   } catch (error) {
     logger.error(`Database Backup Failure: ${error}`);
@@ -237,13 +189,6 @@ export async function restoreBackup(
 
     logger.log(`Database Restore Starting. Database Version: ${databaseMajorVersion}`);
 
-    const psql = processRepository.spawn(bin, args, {
-      env: {
-        PATH: process.env.PATH,
-        PGPASSWORD: databasePassword,
-      },
-    });
-
     const fileStream = await storage.createReadStream(backupFilePath);
     const gunzip = createGunzip();
     fileStream.stream.pipe(gunzip);
@@ -270,49 +215,24 @@ export async function restoreBackup(
       }
     }
 
-    const sqlProgress = new SqlProgressStream((progress) => {
+    const sqlStream = Readable.from(sql());
+    const psql = processRepository.createSpawnDuplexStream(bin, args, {
+      env: {
+        PATH: process.env.PATH,
+        PGPASSWORD: databasePassword,
+      },
+    });
+
+    const [progressSource, progressSink] = createSqlProgressStreams((progress) => {
       logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
       progressCb?.('restore', progress);
     });
 
-    await Promise.all([
-      // pipe sql -> psql
-      pipeline(Readable.from(sql()), sqlProgress, psql.stdin),
-      // handle psql lifecycle
-      new Promise<void>((resolve, reject) => {
-        psql.stdout.on('data', (chunk) => sqlProgress.readPsqlStdout(chunk));
-
-        let psqlLogs = '';
-        psql.stderr.on('data', (data) => (psqlLogs += data));
-
-        psql.on('error', (err) => {
-          logger.error(`Restore failed with error: ${err}`);
-          reject(err);
-        });
-
-        psql.on('exit', (code) => {
-          if (code !== 0) {
-            const processedLogs = psqlLogs
-              .split('\n')
-              .filter((line) => !line.includes('drop cascades'))
-              .join('\n');
-
-            logger.error(processedLogs);
-            logger.error(`Restore failed with code ${code}`);
-            reject(`Restore failed with code ${code}\n${processedLogs}`);
-            return;
-          }
-
-          resolve();
-        });
-      }),
-    ]);
+    await pipeline(sqlStream, progressSource, psql, progressSink);
   } catch (error) {
     logger.error(`Database Restore Failure: ${error}`);
     throw error;
   }
-
-  // todo: trigger restart
 
   logger.log(`Database Restore Success`);
 }
@@ -337,67 +257,63 @@ export async function listBackups({
   };
 }
 
-class SqlProgressStream extends PassThrough {
-  static STDIN_START_MARKER = new TextEncoder().encode('FROM stdin');
-  static STDIN_END_MARKER = new TextEncoder().encode(String.raw`\.`);
+function createSqlProgressStreams(cb: (progress: number) => void) {
+  const STDIN_START_MARKER = new TextEncoder().encode('FROM stdin');
+  const STDIN_END_MARKER = new TextEncoder().encode(String.raw`\.`);
 
-  readingStdin = false;
-  sequenceIdx = 0;
+  let readingStdin = false;
+  let sequenceIdx = 0;
 
-  bytesSent = 0;
-  bytesProcessed = 0;
+  let bytesSent = 0;
+  let bytesProcessed = 0;
 
-  callback: () => void;
+  const startedAt = +Date.now();
+  const cbDebounced = debounce(
+    () => {
+      const progress = source.writableEnded
+        ? Math.max(1, bytesProcessed / bytesSent)
+        : // progress simulation while we're in an indeterminate state
+          Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
+      cb(progress);
+    },
+    100,
+    {
+      maxWait: 200,
+    },
+  );
 
-  constructor(callback: (progress: number) => void) {
-    super();
+  const source = new PassThrough({
+    transform(chunk, _encoding, callback) {
+      for (const byte of chunk) {
+        const sequence = readingStdin ? STDIN_END_MARKER : STDIN_START_MARKER;
+        if (sequence[sequenceIdx] === byte) {
+          sequenceIdx += 1;
 
-    const startedAt = +Date.now();
-    this.callback = debounce(
-      () => {
-        const progress = this.readableEnded
-          ? Math.max(1, this.bytesProcessed / this.bytesSent)
-          : // progress simulation while we're in an indeterminate state
-            Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
-        callback(progress);
-      },
-      100,
-      {
-        maxWait: 200,
-      },
-    );
-  }
-
-  get currentSequence() {
-    return this.readingStdin ? SqlProgressStream.STDIN_END_MARKER : SqlProgressStream.STDIN_START_MARKER;
-  }
-
-  _transform(chunk: Buffer, _encoding: BufferEncoding, callback: TransformCallback): void {
-    for (const byte of chunk) {
-      const sequence = this.currentSequence;
-      if (sequence[this.sequenceIdx] === byte) {
-        this.sequenceIdx += 1;
-
-        if (sequence.length === this.sequenceIdx) {
-          this.sequenceIdx = 0;
-          this.readingStdin = !this.readingStdin;
+          if (sequence.length === sequenceIdx) {
+            sequenceIdx = 0;
+            readingStdin = !readingStdin;
+          }
+        } else {
+          sequenceIdx = 0;
         }
-      } else {
-        this.sequenceIdx = 0;
       }
-    }
 
-    if (!this.readingStdin) {
-      this.bytesSent += chunk.length;
-      this.callback();
-    }
+      if (!readingStdin) {
+        bytesSent += chunk.length;
+        cbDebounced();
+      }
 
-    this.push(chunk);
-    callback();
-  }
+      this.push(chunk);
+      callback();
+    },
+  });
 
-  readPsqlStdout(chunk: Buffer) {
-    this.bytesProcessed += chunk.length;
-    this.callback();
-  }
+  const sink = new Writable({
+    write(chunk, _encoding, callback) {
+      bytesProcessed += chunk.length;
+      callback();
+    },
+  });
+
+  return [source, sink];
 }

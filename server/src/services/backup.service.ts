@@ -63,9 +63,10 @@ export class BackupService extends BaseService {
 
   @OnJob({ name: JobName.DatabaseBackup, queue: QueueName.BackupDatabase })
   async handleBackupDatabase(): Promise<JobStatus> {
-    const status = await createBackup(this.backupRepos);
-    if (status !== JobStatus.Success) {
-      return status;
+    try {
+      await createBackup(this.backupRepos);
+    } catch (error) {
+      throw error; // todo
     }
 
     await this.cleanupDatabaseBackups();
