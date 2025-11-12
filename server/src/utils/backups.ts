@@ -7,12 +7,13 @@ import { createGunzip } from 'node:zlib';
 import semver from 'semver';
 import { serverVersion } from 'src/constants';
 import { StorageCore } from 'src/cores/storage.core';
-import { JobStatus, StorageFolder } from 'src/enum';
+import { StorageFolder } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { ProcessRepository } from 'src/repositories/process.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
+import { TransformCallback } from 'stream';
 
 export function isValidBackupName(filename: string) {
   const oldBackupStyle = filename.match(/immich-db-backup-\d+\.sql\.gz$/);
@@ -34,13 +35,12 @@ type BackupRepos = {
 };
 
 export async function buildPostgresLaunchArguments(
-  { config, database }: Pick<BackupRepos, 'config' | 'database'>,
+  { logger, config, database }: Pick<BackupRepos, 'logger' | 'config' | 'database'>,
   bin: 'pg_dump' | 'pg_dumpall' | 'psql',
 ): Promise<{
   bin: string;
   args: string[];
   databasePassword: string;
-  databaseIsSupported: boolean;
   databaseVersion: string;
   databaseMajorVersion?: number;
 }> {
@@ -61,7 +61,6 @@ export async function buildPostgresLaunchArguments(
     }
 
     args.push(databaseConfig.url);
-    // nb. doesn't replace database/user
   } else {
     args.push(
       '--username',
@@ -106,12 +105,15 @@ export async function buildPostgresLaunchArguments(
     }
   }
 
+  if (!databaseMajorVersion || !databaseSemver || !semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) {
+    logger.error(`Database Restore Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
+    throw new Error(`Unsupported PostgreSQL version: ${databaseVersion}`);
+  }
+
   return {
     bin: `/usr/lib/postgresql/${databaseMajorVersion}/bin/${bin}`,
     args,
     databasePassword: isUrlConnection ? new URL(databaseConfig.url).password : databaseConfig.password,
-    databaseIsSupported:
-      (databaseMajorVersion && databaseSemver && semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) === true,
     databaseVersion,
     databaseMajorVersion,
   };
@@ -119,23 +121,20 @@ export async function buildPostgresLaunchArguments(
 
 export async function createBackup(
   { logger, storage, process: processRepository, ...pgRepos }: BackupRepos,
-  suffix?: string,
-): Promise<JobStatus> {
+  filenameSuffix?: string,
+): Promise<void> {
   logger.debug(`Database Backup Started`);
 
-  const { bin, args, databasePassword, databaseIsSupported, databaseVersion, databaseMajorVersion } =
-    await buildPostgresLaunchArguments(pgRepos, 'pg_dump');
-
-  if (!databaseIsSupported) {
-    logger.error(`Database Backup Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
-    return JobStatus.Failed;
-  }
+  const { bin, args, databasePassword, databaseVersion, databaseMajorVersion } = await buildPostgresLaunchArguments(
+    { logger, ...pgRepos },
+    'pg_dump',
+  );
 
   logger.log(`Database Backup Starting. Database Version: ${databaseMajorVersion}`);
 
   const backupFilePath = join(
     StorageCore.getBaseFolder(StorageFolder.Backups),
-    `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}${suffix}.sql.gz.tmp`,
+    `immich-db-backup-${DateTime.now().toFormat("yyyyLLdd'T'HHmmss")}-v${serverVersion.toString()}-pg${databaseVersion.split(' ')[0]}${filenameSuffix}.sql.gz.tmp`,
   );
 
   try {
@@ -207,7 +206,6 @@ export async function createBackup(
   }
 
   logger.log(`Database Backup Success`);
-  return JobStatus.Success;
 }
 
 export async function restoreBackup(
@@ -225,23 +223,19 @@ export async function restoreBackup(
       throw new Error('Invalid backup file format!');
     }
 
-    const { bin, args, databasePassword, databaseIsSupported, databaseVersion } = await buildPostgresLaunchArguments(
-      pgRepos,
-      'psql',
-    );
-
-    if (!databaseIsSupported) {
-      logger.error(`Database Restore Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
-      throw new Error(`Unsupported PostgreSQL version:  ${databaseVersion}`);
-    }
-
     const backupFilePath = path.join(StorageCore.getBaseFolder(StorageFolder.Backups), filename);
     await storage.stat(backupFilePath); // => check file exists
 
+    const { bin, args, databasePassword, databaseMajorVersion } = await buildPostgresLaunchArguments(
+      { logger, ...pgRepos },
+      'psql',
+    );
+
     progressCb?.('backup', 0.05);
+
     await createBackup({ logger, storage, process: processRepository, ...pgRepos }, '-maintenance');
 
-    logger.log(`Database Restore Starting.`);
+    logger.log(`Database Restore Starting. Database Version: ${databaseMajorVersion}`);
 
     const psql = processRepository.spawn(bin, args, {
       env: {
@@ -276,69 +270,17 @@ export async function restoreBackup(
       }
     }
 
-    const encoder = new TextEncoder();
-    const STDIN_MARKER = encoder.encode('FROM stdin');
-    const END_MARKER = encoder.encode(String.raw`\.`);
-
-    let linesSent = 0;
-    let linesProcessed = 0;
-    let inputEnded = false;
-    let readingStdin = false;
-    let sequenceIdx = 0;
-
-    const passthrough = new PassThrough();
-    passthrough.on('data', (chunk: Buffer) => {
-      for (const byte of chunk) {
-        if (byte === 10 && !readingStdin) {
-          linesSent += 1;
-        } else {
-          const sequence = readingStdin ? END_MARKER : STDIN_MARKER;
-          if (sequence[sequenceIdx] === byte) {
-            sequenceIdx += 1;
-
-            if (sequence.length === sequenceIdx) {
-              sequenceIdx = 0;
-              readingStdin = !readingStdin;
-            }
-          } else {
-            sequenceIdx = 0;
-          }
-        }
-      }
+    const sqlProgress = new SqlProgressStream((progress) => {
+      logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
+      progressCb?.('restore', progress);
     });
-
-    passthrough.on('end', () => (inputEnded = true));
-
-    const startedAt = Date.now();
-    const reportProgress = debounce(
-      () => {
-        const progress = inputEnded
-          ? linesProcessed / linesSent
-          : // if we're not done reading yet, just make something up that moves!
-            Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
-        logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
-        progressCb?.('restore', progress);
-      },
-      50,
-      {
-        maxWait: 100,
-      },
-    );
 
     await Promise.all([
       // pipe sql -> psql
-      pipeline(Readable.from(sql()), passthrough, psql.stdin),
+      pipeline(Readable.from(sql()), sqlProgress, psql.stdin),
       // handle psql lifecycle
       new Promise<void>((resolve, reject) => {
-        psql.stdout.on('data', (chunk) => {
-          for (const byte of chunk) {
-            if (byte === 10) {
-              linesProcessed += 1;
-            }
-          }
-
-          reportProgress();
-        });
+        psql.stdout.on('data', (chunk) => sqlProgress.readPsqlStdout(chunk));
 
         let psqlLogs = '';
         psql.stderr.on('data', (data) => (psqlLogs += data));
@@ -393,4 +335,69 @@ export async function listBackups({
       .toReversed(),
     failedBackups: files.filter((fn) => isFailedBackupName(fn)),
   };
+}
+
+class SqlProgressStream extends PassThrough {
+  static STDIN_START_MARKER = new TextEncoder().encode('FROM stdin');
+  static STDIN_END_MARKER = new TextEncoder().encode(String.raw`\.`);
+
+  readingStdin = false;
+  sequenceIdx = 0;
+
+  bytesSent = 0;
+  bytesProcessed = 0;
+
+  callback: () => void;
+
+  constructor(callback: (progress: number) => void) {
+    super();
+
+    const startedAt = +Date.now();
+    this.callback = debounce(
+      () => {
+        const progress = this.readableEnded
+          ? Math.max(1, this.bytesProcessed / this.bytesSent)
+          : // progress simulation while we're in an indeterminate state
+            Math.min(0.3, 0.1 + (Date.now() - startedAt) / 1e4);
+        callback(progress);
+      },
+      100,
+      {
+        maxWait: 200,
+      },
+    );
+  }
+
+  get currentSequence() {
+    return this.readingStdin ? SqlProgressStream.STDIN_END_MARKER : SqlProgressStream.STDIN_START_MARKER;
+  }
+
+  _transform(chunk: Buffer, _encoding: BufferEncoding, callback: TransformCallback): void {
+    for (const byte of chunk) {
+      const sequence = this.currentSequence;
+      if (sequence[this.sequenceIdx] === byte) {
+        this.sequenceIdx += 1;
+
+        if (sequence.length === this.sequenceIdx) {
+          this.sequenceIdx = 0;
+          this.readingStdin = !this.readingStdin;
+        }
+      } else {
+        this.sequenceIdx = 0;
+      }
+    }
+
+    if (!this.readingStdin) {
+      this.bytesSent += chunk.length;
+      this.callback();
+    }
+
+    this.push(chunk);
+    callback();
+  }
+
+  readPsqlStdout(chunk: Buffer) {
+    this.bytesProcessed += chunk.length;
+    this.callback();
+  }
 }
