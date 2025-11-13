@@ -624,16 +624,22 @@ export const utils = {
     await utils.waitForQueueFinish(accessToken, 'metadataExtraction');
   },
 
-  poll: async function <T>(cb: () => Promise<T>, validate: (value: T) => boolean, map?: (value: T) => any) {
+  async poll<T>(cb: () => Promise<T>, validate: (value: T) => boolean, map?: (value: T) => any) {
     let timeout = 0;
     while (true) {
       try {
         const data = await cb();
-        if (validate(data)) return map ? map(data) : data;
+        if (validate(data)) {
+          return map ? map(data) : data;
+        }
         timeout++;
-        if (timeout >= 10) throw 'Could not clean up test.';
+        if (timeout >= 10) {
+          throw 'Could not clean up test.';
+        }
         await new Promise((resolve) => setTimeout(resolve, 5e2));
-      } catch {}
+      } catch {
+        // no-op
+      }
     }
   },
 };

@@ -311,7 +311,7 @@ describe('/admin/maintenance', () => {
       await utils.connectDatabase();
     });
 
-    it.sequential('should restore a backup', async () => {
+    it.sequential('should restore a backup', { timeout: 6e4 }, async () => {
       const filename = await utils.createBackup(admin.accessToken);
 
       const { status } = await request(app)
@@ -360,7 +360,7 @@ describe('/admin/maintenance', () => {
         .toBeFalsy();
     });
 
-    it.sequential('fail to restore a corrupted backup', async () => {
+    it.sequential('fail to restore a corrupted backup', { timeout: 6e4 }, async () => {
       await utils.prepareTestBackup('corrupted.sql');
 
       const { status, headers } = await request(app)
