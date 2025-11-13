@@ -8,7 +8,9 @@ import {
   CreateAlbumDto,
   CreateLibraryDto,
   JobCommandDto,
+  JobCreateDto,
   JobName,
+  ManualJobName,
   MetadataSearchDto,
   Permission,
   PersonCreateDto,
@@ -20,6 +22,7 @@ import {
   checkExistingAssets,
   createAlbum,
   createApiKey,
+  createJob,
   createLibrary,
   createPartner,
   createPerson,
@@ -27,10 +30,12 @@ import {
   createStack,
   createUserAdmin,
   deleteAssets,
+  deleteBackup,
   getAllJobsStatus,
   getAssetInfo,
   getConfig,
   getConfigDefaults,
+  listBackups,
   login,
   scanLibrary,
   searchAssets,
@@ -145,12 +150,23 @@ const onEvent = ({ event, id }: { event: EventType; id: string }) => {
 };
 
 export const utils = {
+  connectDatabase: async () => {
+    if (!client) {
+      client = new pg.Client(dbUrl);
+      await client.connect();
+    }
+  },
+
+  disconnectDatabase: async () => {
+    if (client) {
+      await client.end();
+      client = null;
+    }
+  },
+
   resetDatabase: async (tables?: string[]) => {
     try {
-      if (!client) {
-        client = new pg.Client(dbUrl);
-        await client.connect();
-      }
+      await utils.connectDatabase();
 
       tables = tables || [
         // TODO e2e test for deleting a stack, since it is quite complex
@@ -477,6 +493,9 @@ export const utils = {
   tagAssets: (accessToken: string, tagId: string, assetIds: string[]) =>
     tagAssets({ id: tagId, bulkIdsDto: { ids: assetIds } }, { headers: asBearerAuth(accessToken) }),
 
+  createJob: async (accessToken: string, jobCreateDto: JobCreateDto) =>
+    createJob({ jobCreateDto }, { headers: asBearerAuth(accessToken) }),
+
   jobCommand: async (accessToken: string, jobName: JobName, jobCommandDto: JobCommandDto) =>
     sendJobCommand({ id: jobName, jobCommandDto }, { headers: asBearerAuth(accessToken) }),
 
@@ -533,6 +552,25 @@ export const utils = {
     mkdirSync(`${testAssetDir}/temp`, { recursive: true });
   },
 
+  createBackup: async (accessToken: string) => {
+    await utils.createJob(accessToken, {
+      name: ManualJobName.BackupDatabase,
+    });
+
+    return await utils.poll(
+      () => request(app).get('/admin/maintenance/backups/list').set('Authorization', `Bearer ${accessToken}`),
+      ({ status, body }) => status === 200 && body.backups.length === 1,
+      ({ body }) => body.backups[0],
+    );
+  },
+
+  resetBackups: async (accessToken: string) => {
+    const { backups, failedBackups } = await listBackups({ headers: asBearerAuth(accessToken) });
+    for (const filename of [...backups, ...failedBackups]) {
+      await deleteBackup({ filename }, { headers: asBearerAuth(accessToken) });
+    }
+  },
+
   resetAdminConfig: async (accessToken: string) => {
     const defaultConfig = await getConfigDefaults({ headers: asBearerAuth(accessToken) });
     await updateConfig({ systemConfigDto: defaultConfig }, { headers: asBearerAuth(accessToken) });
@@ -574,6 +612,19 @@ export const utils = {
     await utils.waitForQueueFinish(accessToken, 'library');
     await utils.waitForQueueFinish(accessToken, 'sidecar');
     await utils.waitForQueueFinish(accessToken, 'metadataExtraction');
+  },
+
+  poll: async function <T>(cb: () => Promise<T>, validate: (value: T) => boolean, map?: (value: T) => any) {
+    let timeout = 0;
+    while (true) {
+      try {
+        const data = await cb();
+        if (validate(data)) return map ? map(data) : data;
+        timeout++;
+        if (timeout >= 10) throw 'Could not clean up test.';
+        await new Promise((resolve) => setTimeout(resolve, 5e2));
+      } catch {}
+    }
   },
 };
 

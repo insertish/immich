@@ -1,9 +1,9 @@
-import { LoginResponseDto } from '@immich/sdk';
+import { LoginResponseDto, ManualJobName } from '@immich/sdk';
 import { createUserDto } from 'src/fixtures';
 import { errorDto } from 'src/responses';
 import { app, utils } from 'src/utils';
 import request from 'supertest';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('/admin/maintenance', () => {
   let cookie: string | undefined;
@@ -14,6 +14,7 @@ describe('/admin/maintenance', () => {
     await utils.resetDatabase();
     admin = await utils.adminSetup();
     nonAdmin = await utils.userSetup(admin.accessToken, createUserDto.user1);
+    await utils.resetBackups(admin.accessToken);
   });
 
   // => outside of maintenance mode
@@ -23,6 +24,16 @@ describe('/admin/maintenance', () => {
       const { status, body } = await request(app).get('/server/config');
       expect(status).toBe(200);
       expect(body.maintenanceMode).toBeFalsy();
+    });
+  });
+
+  describe('GET /status', async () => {
+    it('to always indicate we are not in maintenance mode', async () => {
+      const { status, body } = await request(app).get('/admin/maintenance/status').send({ token: 'token' });
+      expect(status).toBe(200);
+      expect(body).toEqual({
+        exitingMaintenanceMode: true,
+      });
     });
   });
 
@@ -42,6 +53,69 @@ describe('/admin/maintenance', () => {
         .send();
       expect(status).toBe(400);
       expect(body).toEqual(errorDto.badRequest('Not in maintenance mode'));
+    });
+  });
+
+  describe('GET /backups/list', async () => {
+    it('should succeed and be empty', async () => {
+      const { status, body } = await request(app)
+        .get('/admin/maintenance/backups/list')
+        .set('Authorization', `Bearer ${admin.accessToken}`);
+      expect(status).toBe(200);
+      expect(body).toEqual({
+        backups: [],
+        failedBackups: [],
+      });
+    });
+
+    it('should contain a created backup', async () => {
+      await utils.createJob(admin.accessToken, {
+        name: ManualJobName.BackupDatabase,
+      });
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app)
+              .get('/admin/maintenance/backups/list')
+              .set('Authorization', `Bearer ${admin.accessToken}`);
+
+            expect(status).toBe(200);
+            return body;
+          },
+          {
+            interval: 5e2,
+            timeout: 1e4,
+          },
+        )
+        .toEqual(
+          expect.objectContaining({
+            backups: [expect.stringMatching(/immich-db-backup-\d{8}T\d{6}-v.*-pg.*\.sql\.gz$/)],
+          }),
+        );
+    });
+  });
+
+  describe('DELETE /backups/:filename', async () => {
+    it('should delete backup', async () => {
+      const filename = await utils.createBackup(admin.accessToken);
+
+      const { status } = await request(app)
+        .delete(`/admin/maintenance/backups/${filename}`)
+        .set('Authorization', `Bearer ${admin.accessToken}`);
+
+      expect(status).toBe(200);
+
+      const { status: listStatus, body } = await request(app)
+        .get('/admin/maintenance/backups/list')
+        .set('Authorization', `Bearer ${admin.accessToken}`);
+
+      expect(listStatus).toBe(200);
+      expect(body).toEqual(
+        expect.objectContaining({
+          backups: [],
+        }),
+      );
     });
   });
 
@@ -79,7 +153,8 @@ describe('/admin/maintenance', () => {
       await expect
         .poll(
           async () => {
-            const { body } = await request(app).get('/server/config');
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
             return body.maintenanceMode;
           },
           {
@@ -99,6 +174,14 @@ describe('/admin/maintenance', () => {
         const { status, body } = await request(app).get('/server/config');
         expect(status).toBe(200);
         expect(body.maintenanceMode).toBeTruthy();
+      });
+    });
+
+    describe('GET /status', async () => {
+      it('to be empty', async () => {
+        const { status, body } = await request(app).get('/admin/maintenance/status').send({ token: 'token' });
+        expect(status).toBe(200);
+        expect(body).toEqual({});
       });
     });
 
@@ -147,20 +230,131 @@ describe('/admin/maintenance', () => {
 
   describe.sequential('POST /end', () => {
     it('should exit maintenance mode', async () => {
-      console.info('using', cookie!);
       const { status } = await request(app).post('/admin/maintenance/end').set('cookie', cookie!).send();
+      expect(status).toBe(201);
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
+            return body.maintenanceMode;
+          },
+          {
+            interval: 5e2,
+            timeout: 1e4,
+          },
+        )
+        .toBeFalsy();
+    });
+  });
+
+  // => operation: restore database flow
+
+  describe.sequential('POST /start/restore', () => {
+    afterAll(async () => {
+      await request(app).post('/admin/maintenance/end').set('cookie', cookie!).send();
+      await utils.poll(
+        () => request(app).get('/server/config'),
+        ({ status, body }) => status === 200 && !body.maintenanceMode,
+      );
+
+      admin = await utils.adminSetup();
+      nonAdmin = await utils.userSetup(admin.accessToken, createUserDto.user1);
+    });
+
+    it.sequential('should not work when the server is configured', async () => {
+      const { status, body } = await request(app).post('/admin/maintenance/start/restore').send();
+
+      expect(status).toBe(400);
+      expect(body).toEqual(errorDto.badRequest('The server already has an admin'));
+    });
+
+    it.sequential('should enter maintenance mode in "database restore mode"', async () => {
+      await utils.resetDatabase(); // reset database before running this test
+
+      const { status, headers } = await request(app).post('/admin/maintenance/start/restore').send();
+      expect(status).toBe(201);
+
+      cookie = headers['set-cookie'][0].split(';')[0];
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
+            return body.maintenanceMode;
+          },
+          {
+            interval: 5e2,
+            timeout: 1e4,
+          },
+        )
+        .toBeTruthy();
+
+      const { status: status2, body } = await request(app).get('/admin/maintenance/status').send({ token: 'token' });
+      expect(status2).toBe(200);
+      expect(body).toEqual({
+        operation: 'restore-database-flow',
+      });
+    });
+  });
+
+  // => operation: restore database
+
+  describe.sequential('POST /backups/restore', () => {
+    beforeAll(async () => {
+      await utils.disconnectDatabase();
+    });
+
+    afterAll(async () => {
+      await utils.connectDatabase();
+    });
+
+    it.sequential('should restore a backup', async () => {
+      const filename = await utils.createBackup(admin.accessToken);
+
+      const { status } = await request(app)
+        .post('/admin/maintenance/backups/restore')
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({
+          backup: filename,
+        });
 
       expect(status).toBe(201);
 
       await expect
         .poll(
           async () => {
-            const { body } = await request(app).get('/server/config');
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
             return body.maintenanceMode;
           },
           {
             interval: 5e2,
             timeout: 1e4,
+          },
+        )
+        .toBeTruthy();
+
+      const { status: status2, body } = await request(app).get('/admin/maintenance/status').send({ token: 'token' });
+      expect(status2).toBe(200);
+      expect(body).toEqual(
+        expect.objectContaining({
+          operation: 'restore-database',
+        }),
+      );
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
+            return body.maintenanceMode;
+          },
+          {
+            interval: 5e2,
+            timeout: 6e4,
           },
         )
         .toBeFalsy();
