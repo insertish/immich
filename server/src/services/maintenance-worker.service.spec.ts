@@ -29,8 +29,8 @@ describe(MaintenanceWorkerService.name, () => {
   });
 
   describe('getSystemConfig', () => {
-    it('should respond the server is in maintenance mode', async () => {
-      await expect(sut.getSystemConfig()).resolves.toMatchObject(
+    it('should respond the server is in maintenance mode', () => {
+      expect(sut.getSystemConfig()).toMatchObject(
         expect.objectContaining({
           maintenanceMode: true,
         }),

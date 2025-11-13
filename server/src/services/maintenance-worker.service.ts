@@ -66,7 +66,7 @@ export class MaintenanceWorkerService {
   /**
    * {@link _ServerService.getSystemConfig}
    */
-  async getSystemConfig() {
+  getSystemConfig() {
     return {
       maintenanceMode: true,
     } as ServerConfigDto;
@@ -144,7 +144,7 @@ export class MaintenanceWorkerService {
       {
         username: 'immich-admin',
       },
-      await this.maintenanceWorkerRepository.secret,
+      this.maintenanceWorkerRepository.secret,
     );
 
     this.logger.log(`\n\n🚧 Immich is in maintenance mode, you can log in using the following URL:\n${url}\n`);
@@ -214,8 +214,9 @@ export class MaintenanceWorkerService {
 
     try {
       switch (operation.operation) {
-        case MaintenanceOperation.RestoreDatabase:
+        case MaintenanceOperation.RestoreDatabase: {
           await this.restoreBackup(operation.filename);
+        }
       }
     } catch (error) {
       this.logger.error(`${error}`);

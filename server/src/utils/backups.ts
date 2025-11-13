@@ -33,6 +33,12 @@ type BackupRepos = {
   database: DatabaseRepository;
 };
 
+export class UnsupportedPostgresError extends Error {
+  constructor(databaseVersion: string) {
+    super(`Unsupported PostgreSQL version: ${databaseVersion}`);
+  }
+}
+
 export async function buildPostgresLaunchArguments(
   { logger, config, database }: Pick<BackupRepos, 'logger' | 'config' | 'database'>,
   bin: 'pg_dump' | 'pg_dumpall' | 'psql',
@@ -106,7 +112,7 @@ export async function buildPostgresLaunchArguments(
 
   if (!databaseMajorVersion || !databaseSemver || !semver.satisfies(databaseSemver, '>=14.0.0 <19.0.0')) {
     logger.error(`Database Restore Failure: Unsupported PostgreSQL version: ${databaseVersion}`);
-    throw new Error(`Unsupported PostgreSQL version: ${databaseVersion}`);
+    throw new UnsupportedPostgresError(databaseVersion);
   }
 
   return {
