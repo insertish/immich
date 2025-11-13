@@ -359,5 +359,70 @@ describe('/admin/maintenance', () => {
         )
         .toBeFalsy();
     });
+
+    it.sequential('fail to restore a corrupted backup', async () => {
+      await utils.prepareTestBackup('corrupted.sql');
+
+      const { status, headers } = await request(app)
+        .post('/admin/maintenance/backups/restore')
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({
+          backup: 'development-corrupted.sql.gz',
+        });
+
+      expect(status).toBe(201);
+      cookie = headers['set-cookie'][0].split(';')[0];
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app).get('/server/config');
+            expect(status).toBe(200);
+            return body.maintenanceMode;
+          },
+          {
+            interval: 5e2,
+            timeout: 1e4,
+          },
+        )
+        .toBeTruthy();
+
+      await expect
+        .poll(
+          async () => {
+            const { status, body } = await request(app).get('/admin/maintenance/status').send({ token: 'token' });
+            expect(status).toBe(200);
+            return body;
+          },
+          {
+            interval: 5e2,
+            timeout: 1e4,
+          },
+        )
+        .toEqual(
+          expect.objectContaining({
+            operation: 'restore-database',
+            error: 'Something went wrong, see logs!',
+          }),
+        );
+
+      const { status: status2, body: body2 } = await request(app)
+        .get('/admin/maintenance/status')
+        .set('cookie', cookie!)
+        .send({ token: 'token' });
+      expect(status2).toBe(200);
+      expect(body2).toEqual(
+        expect.objectContaining({
+          operation: 'restore-database',
+          error: expect.stringContaining('IM CORRUPTED'),
+        }),
+      );
+
+      await request(app).post('/admin/maintenance/end').set('cookie', cookie!).send();
+      await utils.poll(
+        () => request(app).get('/server/config'),
+        ({ status, body }) => status === 200 && !body.maintenanceMode,
+      );
+    });
   });
 });

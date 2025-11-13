@@ -8,12 +8,22 @@ export class ProcessRepository {
     return spawn(command, args, options);
   }
 
-  createSpawnDuplexStream(command: string, args: readonly string[], options?: SpawnOptionsWithoutStdio): Duplex {
-    const process = this.spawn(command, args, options);
+  createSpawnDuplexStream(
+    command: string,
+    args: readonly string[],
+    options?: SpawnOptionsWithoutStdio,
+  ): Duplex & { process: ChildProcessWithoutNullStreams } {
+    let ended = false;
 
+    const process = this.spawn(command, args, options);
     const duplex = new Duplex({
       // duplex -> stdin
       write(chunk, encoding, callback) {
+        // drain the input if process dies
+        if (ended) {
+          return callback();
+        }
+
         // handle stream backpressure
         if (process.stdin.write(chunk, encoding)) {
           callback();
@@ -27,12 +37,18 @@ export class ProcessRepository {
       },
 
       final(callback) {
-        process.stdin.end(callback);
+        if (!ended) {
+          process.stdin.end(callback);
+        } else {
+          callback();
+        }
       },
-    });
+    }) as Duplex & { process: ChildProcessWithoutNullStreams };
 
     // stdout -> duplex
     process.stdout.on('data', (chunk) => {
+      if (ended) return;
+
       // handle stream backpressure
       if (!duplex.push(chunk)) {
         process.stdout.pause();
@@ -40,26 +56,45 @@ export class ProcessRepository {
     });
 
     duplex.on('resume', () => process.stdout.resume());
-    process.stdout.on('close', () => duplex.push(null));
 
-    // error handling
-    function handleError(error: any) {
-      duplex.destroy(error);
+    // end handling
+    let stdoutClosed = false;
+    function close(error?: Error) {
+      if (ended) {
+        return;
+      }
+
+      if (error) {
+        duplex.destroy(error);
+      } else if (stdoutClosed && typeof process.exitCode === 'number') {
+        duplex.push(null);
+      }
     }
 
-    process.on('error', handleError);
-    process.stdin.on('error', handleError);
-    process.stdout.on('error', handleError);
+    process.stdout.on('close', () => {
+      stdoutClosed = true;
+      close();
+    });
+
+    // error handling
+    process.on('error', close);
+    process.stdin.on('error', close);
+    process.stdout.on('error', close);
 
     let stderr = '';
     process.stderr.on('data', (chunk) => (stderr += chunk));
 
     process.on('exit', (code) => {
+      console.info(`${command} exited (${code})`);
+
       if (code !== 0) {
-        handleError(`${command} non-zero exit code (${code})\n${stderr}`);
+        close(new Error(`${command} non-zero exit code (${code})\n${stderr}`));
+      } else {
+        close();
       }
     });
 
+    duplex.process = process;
     return duplex;
   }
 }

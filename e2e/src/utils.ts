@@ -85,8 +85,9 @@ export const asBearerAuth = (accessToken: string) => ({ Authorization: `Bearer $
 export const asKeyAuth = (key: string) => ({ 'x-api-key': key });
 export const immichCli = (args: string[]) =>
   executeCommand('pnpm', ['exec', 'immich', '-d', `/${tempDir}/immich/`, ...args], { cwd: '../cli' }).promise;
-export const immichAdmin = (args: string[]) =>
-  executeCommand('docker', ['exec', '-i', 'immich-e2e-server', '/bin/bash', '-c', `immich-admin ${args.join(' ')}`]);
+export const dockerExec = (args: string[]) =>
+  executeCommand('docker', ['exec', '-i', 'immich-e2e-server', '/bin/bash', '-c', args.join(' ')]);
+export const immichAdmin = (args: string[]) => dockerExec([`immich-admin ${args.join(' ')}`]);
 export const specialCharStrings = ["'", '"', ',', '{', '}', '*'];
 export const TEN_TIMES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -153,8 +154,11 @@ export const utils = {
   connectDatabase: async () => {
     if (!client) {
       client = new pg.Client(dbUrl);
+      client.on('error', () => void 0);
       await client.connect();
     }
+
+    return client;
   },
 
   disconnectDatabase: async () => {
@@ -166,7 +170,7 @@ export const utils = {
 
   resetDatabase: async (tables?: string[]) => {
     try {
-      await utils.connectDatabase();
+      client = await utils.connectDatabase();
 
       tables = tables || [
         // TODO e2e test for deleting a stack, since it is quite complex
@@ -569,6 +573,12 @@ export const utils = {
     for (const filename of [...backups, ...failedBackups]) {
       await deleteBackup({ filename }, { headers: asBearerAuth(accessToken) });
     }
+  },
+
+  prepareTestBackup: async (testBackup: 'corrupted.sql') => {
+    await dockerExec(['cp', `${testAssetDirInternal}/backups/${testBackup}`, `/data/backups/development-${testBackup}`])
+      .promise;
+    await dockerExec(['gzip', `/data/backups/development-${testBackup}`]).promise;
   },
 
   resetAdminConfig: async (accessToken: string) => {
