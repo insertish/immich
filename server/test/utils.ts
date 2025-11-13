@@ -487,31 +487,27 @@ export const mockSpawn = vitest.fn((exitCode: number, stdout: string, stderr: st
 export const mockDuplex = vitest.fn(
   (command: string, exitCode: number, stdout: string, stderr: string, error?: unknown) => {
     const duplex = new Duplex({
-      // ignore 'stdin'
       write(_chunk, _encoding, callback) {
         callback();
       },
 
-      read() {
-        // no-op
-      },
+      read() {},
 
       final(callback) {
         callback();
       },
     });
 
-    if (error) {
-      duplex.destroy(error as Error);
-    } else if (exitCode !== 0) {
-      duplex.destroy(new Error(`${command} non-zero exit code (${exitCode})\n${stderr}`));
-    }
-
-    /* eslint-disable */
-    // this is not a .push that can be combined!!!
-    duplex.push(stdout);
-    duplex.push(null);
-    /* eslint-enable */
+    setImmediate(() => {
+      if (error) {
+        duplex.destroy(error as Error);
+      } else if (exitCode !== 0) {
+        duplex.destroy(new Error(`${command} non-zero exit code (${exitCode})\n${stderr}`));
+      } else {
+        duplex.push(stdout);
+        duplex.push(null);
+      }
+    });
 
     return duplex;
   },

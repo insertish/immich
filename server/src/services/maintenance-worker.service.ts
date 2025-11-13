@@ -144,7 +144,7 @@ export class MaintenanceWorkerService {
       {
         username: 'immich-admin',
       },
-      this.maintenanceWorkerRepository.secret,
+      this.maintenanceWorkerRepository.getSecret(),
     );
 
     this.logger.log(`\n\n🚧 Immich is in maintenance mode, you can log in using the following URL:\n${url}\n`);
@@ -172,7 +172,7 @@ export class MaintenanceWorkerService {
     try {
       const result = await jwtVerify<MaintenanceAuthDto>(
         jwt,
-        new TextEncoder().encode(this.maintenanceWorkerRepository.secret),
+        new TextEncoder().encode(this.maintenanceWorkerRepository.getSecret()),
       );
       return result.payload;
     } catch {
@@ -190,7 +190,9 @@ export class MaintenanceWorkerService {
    * Operations
    */
 
-  async tryStartOperation(operation: (MaintenanceModeState & { isMaintenanceMode: true })['operation']): Promise<void> {
+  async tryStartOperation(
+    operation?: (MaintenanceModeState & { isMaintenanceMode: true })['operation'],
+  ): Promise<void> {
     if (!operation) {
       return;
     }
@@ -208,7 +210,7 @@ export class MaintenanceWorkerService {
       // => maintenance worker attempting to restart operation on restart
       await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
         isMaintenanceMode: true,
-        secret: this.maintenanceWorkerRepository.secret,
+        secret: this.maintenanceWorkerRepository.getSecret(),
       });
     }
 
@@ -244,6 +246,10 @@ export class MaintenanceWorkerService {
         action,
       }),
     );
+
+    this.maintenanceWorkerRepository.emitStatus({
+      exitingMaintenanceMode: true,
+    });
 
     this.maintenanceWorkerRepository.restartApp({
       isMaintenanceMode: false,

@@ -3,7 +3,6 @@ import { DateTime } from 'luxon';
 import path, { join } from 'node:path';
 import { PassThrough, Readable, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { createGunzip } from 'node:zlib';
 import semver from 'semver';
 import { serverVersion } from 'src/constants';
 import { StorageCore } from 'src/cores/storage.core';
@@ -195,9 +194,9 @@ export async function restoreBackup(
 
     logger.log(`Database Restore Starting. Database Version: ${databaseMajorVersion}`);
 
-    const fileStream = await storage.createReadStream(backupFilePath);
-    const gunzip = createGunzip();
-    fileStream.stream.pipe(gunzip);
+    const fileStream = storage.createPlainReadStream(backupFilePath);
+    const gunzip = storage.createGunzip();
+    fileStream.pipe(gunzip);
 
     async function* sql() {
       yield `

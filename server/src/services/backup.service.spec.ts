@@ -147,7 +147,7 @@ describe(BackupService.name, () => {
     beforeEach(() => {
       mocks.storage.readdir.mockResolvedValue([]);
       mocks.process.spawn.mockReturnValue(mockSpawn(0, 'data', ''));
-      mocks.process.createSpawnDuplexStream.mockReturnValue(mockDuplex('command', 0, 'data', ''));
+      mocks.process.createSpawnDuplexStream.mockImplementation(() => mockDuplex('command', 0, 'data', ''));
       mocks.storage.rename.mockResolvedValue();
       mocks.storage.unlink.mockResolvedValue();
       mocks.systemMetadata.get.mockResolvedValue(systemConfigStub.backupEnabled);
