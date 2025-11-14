@@ -8,11 +8,7 @@ export class ProcessRepository {
     return spawn(command, args, options);
   }
 
-  createSpawnDuplexStream(
-    command: string,
-    args: readonly string[],
-    options?: SpawnOptionsWithoutStdio,
-  ): Duplex & { process: ChildProcessWithoutNullStreams } {
+  createSpawnDuplexStream(command: string, args: readonly string[], options?: SpawnOptionsWithoutStdio): Duplex {
     let ended = false;
 
     const process = this.spawn(command, args, options);
@@ -43,7 +39,7 @@ export class ProcessRepository {
           callback();
         }
       },
-    }) as Duplex & { process: ChildProcessWithoutNullStreams };
+    });
 
     // stdout -> duplex
     process.stdout.on('data', (chunk) => {
@@ -94,7 +90,6 @@ export class ProcessRepository {
       }
     });
 
-    duplex.process = process;
     return duplex;
   }
 }

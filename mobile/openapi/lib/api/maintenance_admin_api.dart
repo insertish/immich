@@ -56,39 +56,6 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// Performs an HTTP 'POST /admin/maintenance/end' operation and returns the [Response].
-  Future<Response> endMaintenanceWithHttpInfo() async {
-    // ignore: prefer_const_declarations
-    final apiPath = r'/admin/maintenance/end';
-
-    // ignore: prefer_final_locals
-    Object? postBody;
-
-    final queryParams = <QueryParam>[];
-    final headerParams = <String, String>{};
-    final formParams = <String, String>{};
-
-    const contentTypes = <String>[];
-
-
-    return apiClient.invokeAPI(
-      apiPath,
-      'POST',
-      queryParams,
-      postBody,
-      headerParams,
-      formParams,
-      contentTypes.isEmpty ? null : contentTypes.first,
-    );
-  }
-
-  Future<void> endMaintenance() async {
-    final response = await endMaintenanceWithHttpInfo();
-    if (response.statusCode >= HttpStatus.badRequest) {
-      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
-    }
-  }
-
   /// Performs an HTTP 'GET /admin/maintenance/backups/list' operation and returns the [Response].
   Future<Response> listBackupsWithHttpInfo() async {
     // ignore: prefer_const_declarations
@@ -130,7 +97,12 @@ class MaintenanceAdminApi {
     return null;
   }
 
-  /// Performs an HTTP 'POST /admin/maintenance/login' operation and returns the [Response].
+  /// Log into maintenance mode
+  ///
+  /// Login with maintenance token or cookie to receive current information and perform further actions.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
   /// Parameters:
   ///
   /// * [MaintenanceLoginDto] maintenanceLoginDto (required):
@@ -159,6 +131,10 @@ class MaintenanceAdminApi {
     );
   }
 
+  /// Log into maintenance mode
+  ///
+  /// Login with maintenance token or cookie to receive current information and perform further actions.
+  ///
   /// Parameters:
   ///
   /// * [MaintenanceLoginDto] maintenanceLoginDto (required):
@@ -257,19 +233,27 @@ class MaintenanceAdminApi {
     }
   }
 
-  /// Performs an HTTP 'POST /admin/maintenance/start' operation and returns the [Response].
-  Future<Response> startMaintenanceWithHttpInfo() async {
+  /// Set maintenance mode
+  ///
+  /// Put Immich into or take it out of maintenance mode
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [SetMaintenanceModeDto] setMaintenanceModeDto (required):
+  Future<Response> setMaintenanceModeWithHttpInfo(SetMaintenanceModeDto setMaintenanceModeDto,) async {
     // ignore: prefer_const_declarations
-    final apiPath = r'/admin/maintenance/start';
+    final apiPath = r'/admin/maintenance';
 
     // ignore: prefer_final_locals
-    Object? postBody;
+    Object? postBody = setMaintenanceModeDto;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    const contentTypes = <String>[];
+    const contentTypes = <String>['application/json'];
 
 
     return apiClient.invokeAPI(
@@ -283,8 +267,15 @@ class MaintenanceAdminApi {
     );
   }
 
-  Future<void> startMaintenance() async {
-    final response = await startMaintenanceWithHttpInfo();
+  /// Set maintenance mode
+  ///
+  /// Put Immich into or take it out of maintenance mode
+  ///
+  /// Parameters:
+  ///
+  /// * [SetMaintenanceModeDto] setMaintenanceModeDto (required):
+  Future<void> setMaintenanceMode(SetMaintenanceModeDto setMaintenanceModeDto,) async {
+    final response = await setMaintenanceModeWithHttpInfo(setMaintenanceModeDto,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

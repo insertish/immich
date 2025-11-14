@@ -438,6 +438,8 @@ export enum LogLevel {
 export enum ApiCustomExtension {
   Permission = 'x-immich-permission',
   AdminOnly = 'x-immich-admin-only',
+  History = 'x-immich-history',
+  State = 'x-immich-state',
 }
 
 export enum MetadataKey {
@@ -650,6 +652,11 @@ export enum MaintenanceOperation {
   RestoreDatabaseFlow = 'restore-database-flow',
 }
 
+export enum MaintenanceAction {
+  Start = 'start',
+  End = 'end',
+}
+
 export enum ExitCode {
   AppRestart = 7,
 }
@@ -800,6 +807,7 @@ export enum ApiTag {
   Faces = 'Faces',
   Jobs = 'Jobs',
   Libraries = 'Libraries',
+  Maintenance = 'Maintenance (admin)',
   Map = 'Map',
   Memories = 'Memories',
   Notifications = 'Notifications',

@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { StorageCore } from 'src/cores/storage.core';
 import { MaintenanceOperation, StorageFolder, SystemMetadataKey } from 'src/enum';
@@ -51,11 +50,6 @@ describe(MaintenanceService.name, () => {
   });
 
   describe('startMaintenance', () => {
-    it('should fail if in maintenance mode', async () => {
-      mocks.systemMetadata.get.mockResolvedValue({ isMaintenanceMode: true, secret: '' });
-      await expect(sut.startMaintenance('admin')).rejects.toThrowError(BadRequestException);
-    });
-
     it('should set maintenance mode and return a secret', async () => {
       mocks.systemMetadata.get.mockResolvedValue({ isMaintenanceMode: false });
 

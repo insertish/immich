@@ -18,16 +18,12 @@ class Workers {
   /**
    * Currently running workers
    */
-  workers: Partial<Record<ImmichWorker, Worker | ChildProcess>>;
+  workers: Partial<Record<ImmichWorker, { kill: (signal: NodeJS.Signals) => Promise<void> | void }>> = {};
 
   /**
    * Fail-safe in case anything dies during restart
    */
   restarting = false;
-
-  constructor() {
-    this.workers = {};
-  }
 
   async bootstrap() {
     const isMaintenanceMode = await this.isMaintenanceMode();
@@ -99,17 +95,27 @@ class Workers {
     const basePath = dirname(__filename);
     const workerFile = join(basePath, 'workers', `${name}.js`);
 
-    const worker: Worker | ChildProcess =
-      name === ImmichWorker.Api
-        ? fork(workerFile, [], {
-            execArgv: process.execArgv.map((arg) => (arg.startsWith('--inspect') ? '--inspect=0.0.0.0:9231' : arg)),
-          })
-        : new Worker(workerFile);
+    let anyWorker: Worker | ChildProcess;
+    let kill: (signal?: NodeJS.Signals) => Promise<void> | void;
 
-    worker.on('error', (error) => this.onError(name, error));
-    worker.on('exit', (exitCode) => this.onExit(name, exitCode));
+    if (name === ImmichWorker.Api) {
+      const worker = fork(workerFile, [], {
+        execArgv: process.execArgv.map((arg) => (arg.startsWith('--inspect') ? '--inspect=0.0.0.0:9231' : arg)),
+      });
 
-    this.workers[name] = worker;
+      kill = (signal) => void worker.kill(signal);
+      anyWorker = worker;
+    } else {
+      const worker = new Worker(workerFile);
+
+      kill = async () => void (await worker.terminate());
+      anyWorker = worker;
+    }
+
+    anyWorker.on('error', (error) => this.onError(name, error));
+    anyWorker.on('exit', (exitCode) => this.onExit(name, exitCode));
+
+    this.workers[name] = { kill };
   }
 
   onError(name: ImmichWorker, error: Error) {
@@ -141,7 +147,7 @@ class Workers {
 
       if (this.workers[ImmichWorker.Api] && name !== ImmichWorker.Api) {
         console.error('Killing api process');
-        (this.workers[ImmichWorker.Api] as ChildProcess).kill('SIGTERM');
+        void this.workers[ImmichWorker.Api].kill('SIGTERM');
       }
     }
 

@@ -160,12 +160,11 @@ Class | Method | HTTP request | Description
 *LibrariesApi* | [**updateLibrary**](doc//LibrariesApi.md#updatelibrary) | **PUT** /libraries/{id} | Update a library
 *LibrariesApi* | [**validate**](doc//LibrariesApi.md#validate) | **POST** /libraries/{id}/validate | Validate library settings
 *MaintenanceAdminApi* | [**deleteBackup**](doc//MaintenanceAdminApi.md#deletebackup) | **DELETE** /admin/maintenance/backups/{filename} | 
-*MaintenanceAdminApi* | [**endMaintenance**](doc//MaintenanceAdminApi.md#endmaintenance) | **POST** /admin/maintenance/end | 
 *MaintenanceAdminApi* | [**listBackups**](doc//MaintenanceAdminApi.md#listbackups) | **GET** /admin/maintenance/backups/list | 
-*MaintenanceAdminApi* | [**maintenanceLogin**](doc//MaintenanceAdminApi.md#maintenancelogin) | **POST** /admin/maintenance/login | 
+*MaintenanceAdminApi* | [**maintenanceLogin**](doc//MaintenanceAdminApi.md#maintenancelogin) | **POST** /admin/maintenance/login | Log into maintenance mode
 *MaintenanceAdminApi* | [**maintenanceStatus**](doc//MaintenanceAdminApi.md#maintenancestatus) | **GET** /admin/maintenance/status | 
 *MaintenanceAdminApi* | [**restoreBackup**](doc//MaintenanceAdminApi.md#restorebackup) | **POST** /admin/maintenance/backups/restore | 
-*MaintenanceAdminApi* | [**startMaintenance**](doc//MaintenanceAdminApi.md#startmaintenance) | **POST** /admin/maintenance/start | 
+*MaintenanceAdminApi* | [**setMaintenanceMode**](doc//MaintenanceAdminApi.md#setmaintenancemode) | **POST** /admin/maintenance | Set maintenance mode
 *MaintenanceAdminApi* | [**startRestoreFlow**](doc//MaintenanceAdminApi.md#startrestoreflow) | **POST** /admin/maintenance/start/restore | 
 *MapApi* | [**getMapMarkers**](doc//MapApi.md#getmapmarkers) | **GET** /map/markers | Retrieve map markers
 *MapApi* | [**reverseGeocode**](doc//MapApi.md#reversegeocode) | **GET** /map/reverse-geocode | Reverse geocode coordinates
@@ -411,6 +410,7 @@ Class | Method | HTTP request | Description
  - [LoginResponseDto](doc//LoginResponseDto.md)
  - [LogoutResponseDto](doc//LogoutResponseDto.md)
  - [MachineLearningAvailabilityChecksDto](doc//MachineLearningAvailabilityChecksDto.md)
+ - [MaintenanceAction](doc//MaintenanceAction.md)
  - [MaintenanceAuthDto](doc//MaintenanceAuthDto.md)
  - [MaintenanceListBackupsResponseDto](doc//MaintenanceListBackupsResponseDto.md)
  - [MaintenanceLoginDto](doc//MaintenanceLoginDto.md)
@@ -497,6 +497,7 @@ Class | Method | HTTP request | Description
  - [SessionResponseDto](doc//SessionResponseDto.md)
  - [SessionUnlockDto](doc//SessionUnlockDto.md)
  - [SessionUpdateDto](doc//SessionUpdateDto.md)
+ - [SetMaintenanceModeDto](doc//SetMaintenanceModeDto.md)
  - [SharedLinkCreateDto](doc//SharedLinkCreateDto.md)
  - [SharedLinkEditDto](doc//SharedLinkEditDto.md)
  - [SharedLinkResponseDto](doc//SharedLinkResponseDto.md)

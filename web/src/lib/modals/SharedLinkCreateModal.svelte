@@ -1,23 +1,20 @@
 <script lang="ts">
-  import SettingSelect from '$lib/components/shared-components/settings/setting-select.svelte';
-  import { handleCreateSharedLink, handleUpdateSharedLink } from '$lib/services/shared-link.service';
-  import { locale } from '$lib/stores/preferences.store';
-  import { SharedLinkType, type SharedLinkResponseDto } from '@immich/sdk';
-  import { Button, Field, Input, Modal, ModalBody, ModalFooter, PasswordInput, Switch, Text } from '@immich/ui';
+  import SharedLinkExpiration from '$lib/components/SharedLinkExpiration.svelte';
+  import { handleCreateSharedLink } from '$lib/services/shared-link.service';
+  import { SharedLinkType } from '@immich/sdk';
+  import { Button, Field, HStack, Input, Modal, ModalBody, ModalFooter, PasswordInput, Switch, Text } from '@immich/ui';
   import { mdiLink } from '@mdi/js';
-  import { DateTime, Duration } from 'luxon';
+  import { DateTime } from 'luxon';
   import { t } from 'svelte-i18n';
 
   interface Props {
     onClose: (success?: boolean) => void;
-    albumId?: string | undefined;
+    albumId?: string;
     assetIds?: string[];
-    editingLink?: SharedLinkResponseDto | undefined;
   }
 
-  let { onClose, albumId = $bindable(undefined), assetIds = $bindable([]), editingLink = undefined }: Props = $props();
+  let { onClose, albumId = $bindable(), assetIds = $bindable([]) }: Props = $props();
 
-  let sharedLink: string | null = $state(null);
   let description = $state('');
   let allowDownload = $state(true);
   let allowUpload = $state(false);
@@ -25,27 +22,7 @@
   let expirationOption: number = $state(0);
   let password = $state('');
   let slug = $state('');
-  let shouldChangeExpirationTime = $state(false);
-
-  const expirationOptions: [number, Intl.RelativeTimeFormatUnit][] = [
-    [30, 'minutes'],
-    [1, 'hour'],
-    [6, 'hours'],
-    [1, 'day'],
-    [7, 'days'],
-    [30, 'days'],
-    [3, 'months'],
-    [1, 'year'],
-  ];
-
-  let relativeTime = $derived(new Intl.RelativeTimeFormat($locale));
-  let expiredDateOptions = $derived([
-    { text: $t('never'), value: 0 },
-    ...expirationOptions.map(([value, unit]) => ({
-      text: relativeTime.format(value, unit),
-      value: Duration.fromObject({ [unit]: value }).toMillis(),
-    })),
-  ]);
+  let expiresAt = $state<string | null>(null);
 
   let shareType = $derived(albumId ? SharedLinkType.Album : SharedLinkType.Individual);
 
@@ -54,21 +31,6 @@
       allowDownload = false;
     }
   });
-
-  if (editingLink) {
-    if (editingLink.description) {
-      description = editingLink.description;
-    }
-
-    password = editingLink.password ?? '';
-    slug = editingLink.slug ?? '';
-    allowUpload = editingLink.allowUpload;
-    allowDownload = editingLink.allowDownload;
-    showMetadata = editingLink.showMetadata;
-
-    albumId = editingLink.album?.id;
-    assetIds = editingLink.assets.map(({ id }) => id);
-  }
 
   const onCreate = async () => {
     const success = await handleCreateSharedLink({
@@ -88,64 +50,16 @@
       onClose(true);
     }
   };
-
-  const onUpdate = async () => {
-    if (!editingLink) {
-      return;
-    }
-
-    const success = await handleUpdateSharedLink(editingLink, {
-      description,
-      password: password ?? null,
-      expiresAt: shouldChangeExpirationTime
-        ? expirationOption > 0
-          ? DateTime.now().plus(expirationOption).toISO()
-          : null
-        : undefined,
-      allowUpload,
-      allowDownload,
-      showMetadata,
-      slug: slug.trim() ?? null,
-    });
-
-    if (success) {
-      onClose(true);
-    }
-  };
-
-  const getTitle = () => {
-    if (sharedLink) {
-      return $t('view_link');
-    }
-    if (editingLink) {
-      return $t('edit_link');
-    }
-    return $t('create_link_to_share');
-  };
 </script>
 
-<Modal title={getTitle()} icon={mdiLink} size="small" {onClose}>
+<Modal title={$t('create_link_to_share')} icon={mdiLink} size="small" {onClose}>
   <ModalBody>
     {#if shareType === SharedLinkType.Album}
-      {#if !editingLink}
-        <div>{$t('album_with_link_access')}</div>
-      {:else}
-        <div class="text-sm">
-          {$t('public_album')} |
-          <span class="text-primary">{editingLink.album?.albumName}</span>
-        </div>
-      {/if}
+      <div>{$t('album_with_link_access')}</div>
     {/if}
 
     {#if shareType === SharedLinkType.Individual}
-      {#if !editingLink}
-        <div>{$t('create_link_to_share_description')}</div>
-      {:else}
-        <div class="text-sm">
-          {$t('individual_share')} |
-          <span class="text-primary">{editingLink.description || ''}</span>
-        </div>
-      {/if}
+      <div>{$t('create_link_to_share_description')}</div>
     {/if}
 
     <div class="flex flex-col gap-4 mt-4">
@@ -166,15 +80,7 @@
         <Input bind:value={description} autocomplete="off" />
       </Field>
 
-      <div class="mt-2">
-        <SettingSelect
-          bind:value={expirationOption}
-          options={expiredDateOptions}
-          label={$t('expire_after')}
-          disabled={editingLink && !shouldChangeExpirationTime}
-          number={true}
-        />
-      </div>
+      <SharedLinkExpiration bind:expiresAt />
 
       <Field label={$t('show_metadata')}>
         <Switch bind:checked={showMetadata} />
@@ -187,20 +93,13 @@
       <Field label={$t('allow_public_user_to_upload')}>
         <Switch bind:checked={allowUpload} />
       </Field>
-
-      {#if editingLink}
-        <Field label={$t('change_expiration_time')}>
-          <Switch bind:checked={shouldChangeExpirationTime} />
-        </Field>
-      {/if}
     </div>
   </ModalBody>
 
   <ModalFooter>
-    {#if editingLink}
-      <Button fullWidth onclick={onUpdate}>{$t('confirm')}</Button>
-    {:else}
-      <Button fullWidth onclick={onCreate}>{$t('create_link')}</Button>
-    {/if}
+    <HStack fullWidth>
+      <Button color="secondary" shape="round" fullWidth onclick={() => onClose()}>{$t('cancel')}</Button>
+      <Button fullWidth shape="round" onclick={onCreate}>{$t('create_link')}</Button>
+    </HStack>
   </ModalFooter>
 </Modal>

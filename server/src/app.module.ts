@@ -8,22 +8,23 @@ import { OpenTelemetryModule } from 'nestjs-otel';
 import { commandsAndQuestions } from 'src/commands';
 import { IWorker } from 'src/constants';
 import { controllers } from 'src/controllers';
-import { MaintenanceWorkerController } from 'src/controllers/maintenance-worker.controller';
 import { StorageCore } from 'src/cores/storage.core';
 import { ImmichWorker, SystemMetadataKey } from 'src/enum';
+import { MaintenanceAuthGuard } from 'src/maintenance/maintenance-auth.guard';
+import { MaintenanceWebsocketRepository } from 'src/maintenance/maintenance-websocket.repository';
+import { MaintenanceWorkerController } from 'src/maintenance/maintenance-worker.controller';
+import { MaintenanceWorkerService } from 'src/maintenance/maintenance-worker.service';
 import { AuthGuard } from 'src/middleware/auth.guard';
 import { ErrorInterceptor } from 'src/middleware/error.interceptor';
 import { FileUploadInterceptor } from 'src/middleware/file-upload.interceptor';
 import { GlobalExceptionFilter } from 'src/middleware/global-exception.filter';
 import { LoggingInterceptor } from 'src/middleware/logging.interceptor';
-import { MaintenanceAuthGuard } from 'src/middleware/maintenance-auth.guard';
 import { repositories } from 'src/repositories';
+import { AppRepository } from 'src/repositories/app.repository';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
 import { EventRepository } from 'src/repositories/event.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
-import { MaintenanceWorkerRepository } from 'src/repositories/maintenance-worker.repository';
-import { MaintenanceRepository } from 'src/repositories/maintenance.repository';
 import { ProcessRepository } from 'src/repositories/process.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
@@ -33,7 +34,6 @@ import { services } from 'src/services';
 import { AuthService } from 'src/services/auth.service';
 import { CliService } from 'src/services/cli.service';
 import { JobService } from 'src/services/job.service';
-import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
 import { MaintenanceModeState } from 'src/types';
 import { getKyselyConfig } from 'src/utils/database';
 
@@ -112,8 +112,8 @@ export class ApiModule extends BaseModule {}
     ProcessRepository,
     DatabaseRepository,
     SystemMetadataRepository,
-    MaintenanceRepository,
-    MaintenanceWorkerRepository,
+    AppRepository,
+    MaintenanceWebsocketRepository,
     MaintenanceWorkerService,
     ...commonMiddleware,
     { provide: APP_GUARD, useClass: MaintenanceAuthGuard },
@@ -124,7 +124,7 @@ export class MaintenanceModule implements OnModuleInit {
   constructor(
     @Inject(IWorker) private worker: ImmichWorker,
     logger: LoggingRepository,
-    private maintenanceWorkerRepository: MaintenanceWorkerRepository,
+    private maintenanceWebsocketRepository: MaintenanceWebsocketRepository,
     private maintenanceWorkerService: MaintenanceWorkerService,
     private systemMetadataRepository: SystemMetadataRepository,
   ) {
@@ -134,7 +134,7 @@ export class MaintenanceModule implements OnModuleInit {
   async onModuleInit() {
     StorageCore.setMediaLocation(this.maintenanceWorkerService.detectMediaLocation());
 
-    this.maintenanceWorkerRepository.setAuthFn(async (client) =>
+    this.maintenanceWebsocketRepository.setAuthFn(async (client) =>
       this.maintenanceWorkerService.authenticate(client.request.headers),
     );
 
@@ -142,7 +142,7 @@ export class MaintenanceModule implements OnModuleInit {
       SystemMetadataKey.MaintenanceMode,
     )) as MaintenanceModeState & { isMaintenanceMode: true };
 
-    this.maintenanceWorkerRepository.init(secret, {
+    this.maintenanceWebsocketRepository.init(secret, {
       operation: operation?.operation,
     });
 

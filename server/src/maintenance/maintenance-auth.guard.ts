@@ -10,8 +10,8 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { MaintenanceAuthDto } from 'src/dtos/maintenance.dto';
 import { MetadataKey } from 'src/enum';
+import { MaintenanceWorkerService } from 'src/maintenance/maintenance-worker.service';
 import { LoggingRepository } from 'src/repositories/logging.repository';
-import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
 
 export const MaintenanceRoute = (options = {}): MethodDecorator => {
   const decorators: MethodDecorator[] = [SetMetadata(MetadataKey.AuthRoute, options)];
@@ -51,7 +51,7 @@ export class MaintenanceAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<MaintenanceAuthRequest>();
-    request['auth'] = await this.service.authenticate(request.headers);
+    request.auth = await this.service.authenticate(request.headers);
 
     return true;
   }

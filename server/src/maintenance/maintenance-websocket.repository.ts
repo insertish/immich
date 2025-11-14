@@ -8,9 +8,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MaintenanceAuthDto, MaintenanceStatusResponseDto } from 'src/dtos/maintenance.dto';
-import { AppRestartEvent } from 'src/repositories/event.repository';
+import { AppRepository } from 'src/repositories/app.repository';
+import { ArgsOf } from 'src/repositories/event.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
-import { MaintenanceRepository } from 'src/repositories/maintenance.repository';
+import { ClientEventMap } from 'src/repositories/websocket.repository';
 
 export const serverEvents = ['AppRestart'] as const;
 export type ServerEvents = (typeof serverEvents)[number];
@@ -23,7 +24,7 @@ type AuthFn = (client: Socket) => Promise<MaintenanceAuthDto>;
   transports: ['websocket'],
 })
 @Injectable()
-export class MaintenanceWorkerRepository implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class MaintenanceWebsocketRepository implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   private authFn?: AuthFn;
 
   @WebSocketServer()
@@ -34,9 +35,9 @@ export class MaintenanceWorkerRepository implements OnGatewayConnection, OnGatew
 
   constructor(
     private logger: LoggingRepository,
-    private maintenanceRepository: MaintenanceRepository,
+    private appRepository: AppRepository,
   ) {
-    this.logger.setContext(MaintenanceWorkerRepository.name);
+    this.logger.setContext(MaintenanceWebsocketRepository.name);
   }
 
   init(secret: string, initialStatus: MaintenanceStatusResponseDto) {
@@ -60,17 +61,17 @@ export class MaintenanceWorkerRepository implements OnGatewayConnection, OnGatew
 
   afterInit(websocketServer: Server) {
     this.logger.log('Initialized websocket server');
-    websocketServer.on('AppRestart', () => this.maintenanceRepository.exitApp());
+    websocketServer.on('AppRestart', () => this.appRepository.exitApp());
     websocketServer.on('MaintenanceStatusV1', (status) => (this.ephemeralStatus = status));
   }
 
-  restartApp(state: AppRestartEvent) {
-    // => corresponds to notification.service.ts#onAppRestart
-    this.websocketServer!.emit('AppRestartV1', state, () => {
-      this.websocketServer!.serverSideEmit('AppRestart', state, () => {
-        this.maintenanceRepository.exitApp();
-      });
-    });
+  clientBroadcast<T extends keyof ClientEventMap>(event: T, ...data: ClientEventMap[T]) {
+    this.websocketServer?.emit(event, ...data);
+  }
+
+  serverSend<T extends ServerEvents>(event: T, ...args: ArgsOf<T>): void {
+    this.logger.debug(`Server event: ${event} (send)`);
+    this.websocketServer?.serverSideEmit(event, ...args);
   }
 
   emitStatus(status: MaintenanceStatusResponseDto) {

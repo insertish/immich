@@ -3,27 +3,31 @@ import { SignJWT } from 'jose';
 import { DateTime } from 'luxon';
 import { StorageCore } from 'src/cores/storage.core';
 import { MaintenanceOperation, StorageFolder, SystemMetadataKey } from 'src/enum';
-import { MaintenanceWorkerRepository } from 'src/repositories/maintenance-worker.repository';
-import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
+import { MaintenanceWebsocketRepository } from 'src/maintenance/maintenance-websocket.repository';
+import { MaintenanceWorkerService } from 'src/maintenance/maintenance-worker.service';
 import { PassThrough, Readable } from 'stream';
 import { automock, AutoMocked, getMocks, mockDuplex, mockSpawn, ServiceMocks } from 'test/utils';
 
 describe(MaintenanceWorkerService.name, () => {
   let sut: MaintenanceWorkerService;
   let mocks: ServiceMocks;
-  let maintenanceWorkerRepositoryMock: AutoMocked<MaintenanceWorkerRepository>;
+  let maintenanceWebsocketRepositoryMock: AutoMocked<MaintenanceWebsocketRepository>;
 
   beforeEach(() => {
     mocks = getMocks();
-    maintenanceWorkerRepositoryMock = automock(MaintenanceWorkerRepository, { args: [mocks.logger], strict: false });
+    maintenanceWebsocketRepositoryMock = automock(MaintenanceWebsocketRepository, {
+      args: [mocks.logger],
+      strict: false,
+    });
     sut = new MaintenanceWorkerService(
       mocks.logger as never,
+      mocks.app,
       mocks.config,
       mocks.storage as never,
       mocks.process,
       mocks.database as never,
       mocks.systemMetadata as never,
-      maintenanceWorkerRepositoryMock,
+      maintenanceWebsocketRepositoryMock,
     );
   });
 
@@ -97,7 +101,7 @@ describe(MaintenanceWorkerService.name, () => {
 
     it('should succeed with valid JWT', async () => {
       mocks.systemMetadata.get.mockResolvedValue({ isMaintenanceMode: true, secret: 'secret' });
-      maintenanceWorkerRepositoryMock.getSecret.mockReturnValue('secret');
+      maintenanceWebsocketRepositoryMock.getSecret.mockReturnValue('secret');
 
       const jwt = await new SignJWT({ _mockValue: true })
         .setProtectedHeader({ alg: 'HS256' })
@@ -122,7 +126,11 @@ describe(MaintenanceWorkerService.name, () => {
         isMaintenanceMode: false,
       });
 
-      expect(maintenanceWorkerRepositoryMock.restartApp).toHaveBeenCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.clientBroadcast).toHaveBeenCalledWith('AppRestartV1', {
+        isMaintenanceMode: false,
+      });
+
+      expect(maintenanceWebsocketRepositoryMock.serverSend).toHaveBeenCalledWith('AppRestart', {
         isMaintenanceMode: false,
       });
     });
@@ -178,7 +186,7 @@ describe(MaintenanceWorkerService.name, () => {
     });
 
     it('should update maintenance mode state', async () => {
-      maintenanceWorkerRepositoryMock.getSecret.mockReturnValue('secret');
+      maintenanceWebsocketRepositoryMock.getSecret.mockReturnValue('secret');
 
       await sut.tryStartOperation({
         operation: MaintenanceOperation.RestoreDatabase,
@@ -197,7 +205,7 @@ describe(MaintenanceWorkerService.name, () => {
         filename: 'filename',
       });
 
-      expect(maintenanceWorkerRepositoryMock.emitStatus).toHaveBeenCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.emitStatus).toHaveBeenCalledWith({
         operation: MaintenanceOperation.RestoreDatabase,
         error: 'Error: Invalid backup file format!',
       });
@@ -209,12 +217,12 @@ describe(MaintenanceWorkerService.name, () => {
         filename: 'development-filename',
       });
 
-      expect(maintenanceWorkerRepositoryMock.emitStatus).toHaveBeenCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.emitStatus).toHaveBeenCalledWith({
         operation: MaintenanceOperation.RestoreDatabase,
         progress: expect.any(Number),
       });
 
-      expect(maintenanceWorkerRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
         exitingMaintenanceMode: true,
       });
     });
@@ -227,7 +235,7 @@ describe(MaintenanceWorkerService.name, () => {
         filename: 'development-filename',
       });
 
-      expect(maintenanceWorkerRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
         operation: MaintenanceOperation.RestoreDatabase,
         error: 'Error: pg_dump non-zero exit code (1)\nerror',
       });
@@ -244,7 +252,7 @@ describe(MaintenanceWorkerService.name, () => {
         filename: 'development-filename',
       });
 
-      expect(maintenanceWorkerRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
+      expect(maintenanceWebsocketRepositoryMock.emitStatus).toHaveBeenLastCalledWith({
         operation: MaintenanceOperation.RestoreDatabase,
         error: 'Error: psql non-zero exit code (1)\nerror',
       });

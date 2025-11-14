@@ -23,11 +23,6 @@ export class MaintenanceService extends BaseService {
     username: string,
     operation?: (MaintenanceModeState & { isMaintenanceMode: true })['operation'],
   ): Promise<{ jwt: string }> {
-    const { isMaintenanceMode } = await this.getMaintenanceMode();
-    if (isMaintenanceMode) {
-      throw new BadRequestException('Already in maintenance mode');
-    }
-
     const secret = generateMaintenanceSecret();
     await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, {
       isMaintenanceMode: true,
@@ -56,7 +51,7 @@ export class MaintenanceService extends BaseService {
 
   @OnEvent({ name: 'AppRestart', server: true })
   onRestart(): void {
-    this.maintenanceRepository.exitApp();
+    this.appRepository.exitApp();
   }
 
   async createLoginUrl(auth: MaintenanceAuthDto, secret?: string): Promise<string> {

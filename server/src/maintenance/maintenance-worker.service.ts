@@ -7,10 +7,11 @@ import { IncomingHttpHeaders } from 'node:http';
 import { MaintenanceAuthDto, MaintenanceStatusResponseDto } from 'src/dtos/maintenance.dto';
 import { ServerConfigDto } from 'src/dtos/server.dto';
 import { DatabaseLock, ImmichCookie, MaintenanceOperation, SystemMetadataKey } from 'src/enum';
+import { MaintenanceWebsocketRepository } from 'src/maintenance/maintenance-websocket.repository';
+import { AppRepository } from 'src/repositories/app.repository';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { DatabaseRepository } from 'src/repositories/database.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
-import { MaintenanceWorkerRepository } from 'src/repositories/maintenance-worker.repository';
 import { ProcessRepository } from 'src/repositories/process.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
 import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
@@ -31,12 +32,13 @@ import { getExternalDomain } from 'src/utils/misc';
 export class MaintenanceWorkerService {
   constructor(
     protected logger: LoggingRepository,
+    private appRepository: AppRepository,
     private configRepository: ConfigRepository,
     private storageRepository: StorageRepository,
     private processRepository: ProcessRepository,
     private databaseRepository: DatabaseRepository,
     private systemMetadataRepository: SystemMetadataRepository,
-    private maintenanceWorkerRepository: MaintenanceWorkerRepository,
+    private maintenanceWorkerRepository: MaintenanceWebsocketRepository,
   ) {
     this.logger.setContext(this.constructor.name);
   }
@@ -183,7 +185,11 @@ export class MaintenanceWorkerService {
   async endMaintenance(): Promise<void> {
     const state: MaintenanceModeState = { isMaintenanceMode: false as const };
     await this.systemMetadataRepository.set(SystemMetadataKey.MaintenanceMode, state);
-    this.maintenanceWorkerRepository.restartApp(state);
+
+    // => corresponds to notification.service.ts#onAppRestart
+    this.maintenanceWorkerRepository.clientBroadcast('AppRestartV1', state);
+    this.maintenanceWorkerRepository.serverSend('AppRestart', state);
+    this.appRepository.exitApp();
   }
 
   /**
@@ -251,9 +257,11 @@ export class MaintenanceWorkerService {
       exitingMaintenanceMode: true,
     });
 
-    this.maintenanceWorkerRepository.restartApp({
-      isMaintenanceMode: false,
-    });
+    // => corresponds to notification.service.ts#onAppRestart
+    const state: MaintenanceModeState = { isMaintenanceMode: false };
+    this.maintenanceWorkerRepository.clientBroadcast('AppRestartV1', state);
+    this.maintenanceWorkerRepository.serverSend('AppRestart', state);
+    this.appRepository.exitApp();
   }
 
   async listBackups(): Promise<Record<'backups' | 'failedBackups', string[]>> {

@@ -40,6 +40,9 @@ export type ActivityStatisticsResponseDto = {
     comments: number;
     likes: number;
 };
+export type SetMaintenanceModeDto = {
+    action: MaintenanceAction;
+};
 export type MaintenanceListBackupsResponseDto = {
     backups: string[];
     failedBackups: string[];
@@ -322,16 +325,13 @@ export type AssetFaceWithoutPersonResponseDto = {
 };
 export type PersonWithFacesResponseDto = {
     birthDate: string | null;
-    /** This property was added in v1.126.0 */
     color?: string;
     faces: AssetFaceWithoutPersonResponseDto[];
     id: string;
-    /** This property was added in v1.126.0 */
     isFavorite?: boolean;
     isHidden: boolean;
     name: string;
     thumbnailPath: string;
-    /** This property was added in v1.107.0 */
     updatedAt?: string;
 };
 export type AssetStackResponseDto = {
@@ -368,7 +368,6 @@ export type AssetResponseDto = {
     isFavorite: boolean;
     isOffline: boolean;
     isTrashed: boolean;
-    /** This property was deprecated in v1.106.0 */
     libraryId?: string | null;
     livePhotoVideoId?: string | null;
     /** The local date and time when the photo/video was taken, derived from EXIF metadata. This represents the photographer's local time regardless of timezone, stored as a timezone-agnostic timestamp. Used for timeline grouping by "local" days and months. */
@@ -379,7 +378,6 @@ export type AssetResponseDto = {
     owner?: UserResponseDto;
     ownerId: string;
     people?: PersonWithFacesResponseDto[];
-    /** This property was deprecated in v1.113.0 */
     resized?: boolean;
     stack?: (AssetStackResponseDto) | null;
     tags?: TagResponseDto[];
@@ -689,15 +687,12 @@ export type DuplicateResponseDto = {
 };
 export type PersonResponseDto = {
     birthDate: string | null;
-    /** This property was added in v1.126.0 */
     color?: string;
     id: string;
-    /** This property was added in v1.126.0 */
     isFavorite?: boolean;
     isHidden: boolean;
     name: string;
     thumbnailPath: string;
-    /** This property was added in v1.107.0 */
     updatedAt?: string;
 };
 export type AssetFaceResponseDto = {
@@ -894,7 +889,6 @@ export type PartnerUpdateDto = {
     inTimeline: boolean;
 };
 export type PeopleResponseDto = {
-    /** This property was added in v1.110.0 */
     hasNextPage?: boolean;
     hidden: number;
     people: PersonResponseDto[];
@@ -1772,6 +1766,18 @@ export function unlinkAllOAuthAccountsAdmin(opts?: Oazapfts.RequestOpts) {
         method: "POST"
     }));
 }
+/**
+ * Set maintenance mode
+ */
+export function setMaintenanceMode({ setMaintenanceModeDto }: {
+    setMaintenanceModeDto: SetMaintenanceModeDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/maintenance", oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: setMaintenanceModeDto
+    })));
+}
 export function listBackups(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
@@ -1797,12 +1803,9 @@ export function deleteBackup({ filename }: {
         method: "DELETE"
     }));
 }
-export function endMaintenance(opts?: Oazapfts.RequestOpts) {
-    return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/end", {
-        ...opts,
-        method: "POST"
-    }));
-}
+/**
+ * Log into maintenance mode
+ */
 export function maintenanceLogin({ maintenanceLoginDto }: {
     maintenanceLoginDto: MaintenanceLoginDto;
 }, opts?: Oazapfts.RequestOpts) {
@@ -1814,12 +1817,6 @@ export function maintenanceLogin({ maintenanceLoginDto }: {
         method: "POST",
         body: maintenanceLoginDto
     })));
-}
-export function startMaintenance(opts?: Oazapfts.RequestOpts) {
-    return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/start", {
-        ...opts,
-        method: "POST"
-    }));
 }
 export function startRestoreFlow(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/admin/maintenance/start/restore", {
@@ -4936,6 +4933,10 @@ export enum UserAvatarColor {
     Orange = "orange",
     Gray = "gray",
     Amber = "amber"
+}
+export enum MaintenanceAction {
+    Start = "start",
+    End = "end"
 }
 export enum Operation {
     RestoreDatabase = "restore-database",

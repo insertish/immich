@@ -390,6 +390,8 @@ class ApiClient {
           return LogoutResponseDto.fromJson(value);
         case 'MachineLearningAvailabilityChecksDto':
           return MachineLearningAvailabilityChecksDto.fromJson(value);
+        case 'MaintenanceAction':
+          return MaintenanceActionTypeTransformer().decode(value);
         case 'MaintenanceAuthDto':
           return MaintenanceAuthDto.fromJson(value);
         case 'MaintenanceListBackupsResponseDto':
@@ -562,6 +564,8 @@ class ApiClient {
           return SessionUnlockDto.fromJson(value);
         case 'SessionUpdateDto':
           return SessionUpdateDto.fromJson(value);
+        case 'SetMaintenanceModeDto':
+          return SetMaintenanceModeDto.fromJson(value);
         case 'SharedLinkCreateDto':
           return SharedLinkCreateDto.fromJson(value);
         case 'SharedLinkEditDto':

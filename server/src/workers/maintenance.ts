@@ -2,8 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { configureExpress, configureTelemetry } from 'src/app.common';
 import { MaintenanceModule } from 'src/app.module';
-import { MaintenanceRepository } from 'src/repositories/maintenance.repository';
-import { MaintenanceWorkerService } from 'src/services/maintenance-worker.service';
+import { MaintenanceWorkerService } from 'src/maintenance/maintenance-worker.service';
+import { AppRepository } from 'src/repositories/app.repository';
 import { isStartUpError } from 'src/utils/misc';
 
 async function bootstrap() {
@@ -11,7 +11,7 @@ async function bootstrap() {
   configureTelemetry();
 
   const app = await NestFactory.create<NestExpressApplication>(MaintenanceModule, { bufferLogs: true });
-  app.get(MaintenanceRepository).setCloseFn(() => app.close());
+  app.get(AppRepository).setCloseFn(() => app.close());
 
   void configureExpress(app, {
     permitSwaggerWrite: false,

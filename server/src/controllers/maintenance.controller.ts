@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { Endpoint, HistoryBuilder } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
 import {
   MaintenanceAuthDto,
@@ -8,13 +9,15 @@ import {
   MaintenanceLoginDto,
   MaintenanceRestoreBackupDto,
   MaintenanceStatusResponseDto,
+  SetMaintenanceModeDto,
 } from 'src/dtos/maintenance.dto';
-import { ImmichCookie, Permission } from 'src/enum';
+import { ApiTag, ImmichCookie, MaintenanceAction, Permission } from 'src/enum';
 import { Auth, Authenticated } from 'src/middleware/auth.guard';
 import { MaintenanceService } from 'src/services/maintenance.service';
+import { respondWithCookie } from 'src/utils/response';
 import { FilenameParamDto } from 'src/validation';
 
-@ApiTags('Maintenance (admin)')
+@ApiTags(ApiTag.Maintenance)
 @Controller('admin/maintenance')
 export class MaintenanceController {
   constructor(private service: MaintenanceService) {}
@@ -27,27 +30,40 @@ export class MaintenanceController {
   }
 
   @Post('login')
+  @Endpoint({
+    summary: 'Log into maintenance mode',
+    description: 'Login with maintenance token or cookie to receive current information and perform further actions.',
+    history: new HistoryBuilder().added('v2.3.0').alpha('v2.3.0'),
+  })
   maintenanceLogin(@Body() _dto: MaintenanceLoginDto): MaintenanceAuthDto {
     throw new BadRequestException('Not in maintenance mode');
   }
 
-  @Post('start')
+  @Post()
+  @Endpoint({
+    summary: 'Set maintenance mode',
+    description: 'Put Immich into or take it out of maintenance mode',
+    history: new HistoryBuilder().added('v2.3.0').alpha('v2.3.0'),
+  })
   @Authenticated({ permission: Permission.Maintenance, admin: true })
-  async startMaintenance(@Auth() auth: AuthDto, @Res({ passthrough: true }) response: Response): Promise<void> {
-    const { jwt } = await this.service.startMaintenance(auth.user.name);
-    response.cookie(ImmichCookie.MaintenanceToken, jwt);
+  async setMaintenanceMode(
+    @Auth() auth: AuthDto,
+    @Body() dto: SetMaintenanceModeDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    if (dto.action === MaintenanceAction.Start) {
+      const { jwt } = await this.service.startMaintenance(auth.user.name);
+      return respondWithCookie(res, undefined, {
+        isSecure: false,
+        values: [{ key: ImmichCookie.MaintenanceToken, value: jwt }],
+      });
+    }
   }
 
   @Post('start/restore')
   async startRestoreFlow(@Res({ passthrough: true }) response: Response): Promise<void> {
     const { jwt } = await this.service.startRestoreFlow();
     response.cookie(ImmichCookie.MaintenanceToken, jwt);
-  }
-
-  @Post('end')
-  @Authenticated({ permission: Permission.Maintenance, admin: true })
-  endMaintenance(): void {
-    throw new BadRequestException('Not in maintenance mode');
   }
 
   @Get('backups/list')
