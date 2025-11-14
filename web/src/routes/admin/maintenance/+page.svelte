@@ -5,7 +5,7 @@
   import SettingAccordion from '$lib/components/shared-components/settings/setting-accordion.svelte';
   import { QueryParameter } from '$lib/constants';
   import { handleError } from '$lib/utils/handle-error';
-  import { startMaintenance } from '@immich/sdk';
+  import { MaintenanceAction, setMaintenanceMode } from '@immich/sdk';
   import { Button, HStack, Text } from '@immich/ui';
   import { mdiProgressWrench, mdiRefresh } from '@mdi/js';
   import { t } from 'svelte-i18n';
@@ -19,7 +19,11 @@
 
   async function switchToMaintenance() {
     try {
-      await startMaintenance();
+      await setMaintenanceMode({
+        setMaintenanceModeDto: {
+          action: MaintenanceAction.Start,
+        },
+      });
     } catch (error) {
       handleError(error, $t('admin.maintenance_start_error'));
     }

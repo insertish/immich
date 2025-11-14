@@ -28,6 +28,13 @@
   }
 
   const { auth, status } = maintenanceStore;
+
+  let error = $derived(
+    $status.error
+      ?.split('\n')
+      .filter((line) => !line.includes('drop cascades'))
+      .join('\n'),
+  );
 </script>
 
 <AuthPageLayout title={$t('maintenance_title')} withHeader={!$status.operation}>
@@ -35,8 +42,8 @@
     {#if $status.operation === 'restore-database'}
       <Heading size="large" color="primary" tag="h1">Restoring Database</Heading>
       {#if $status.error}
-        <Scrollable>
-          <pre class="text-left"><code>{$status.error}</code></pre>
+        <Scrollable class="max-h-[320px]">
+          <pre class="text-left"><code>{error}</code></pre>
         </Scrollable>
       {:else}
         <div class="w-[240px] h-[10px] bg-gray-300 rounded-full overflow-hidden">
