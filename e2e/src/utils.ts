@@ -154,7 +154,8 @@ export const utils = {
   connectDatabase: async () => {
     if (!client) {
       client = new pg.Client(dbUrl);
-      client.on('error', () => void 0);
+      client.on('end', () => (client = null));
+      client.on('error', () => (client = null));
       await client.connect();
     }
 
@@ -164,7 +165,6 @@ export const utils = {
   disconnectDatabase: async () => {
     if (client) {
       await client.end();
-      client = null;
     }
   },
 

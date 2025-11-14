@@ -172,6 +172,7 @@ export async function restoreBackup(
 ): Promise<void> {
   logger.debug(`Database Restore Started`);
 
+  let complete = false;
   try {
     if (!isValidBackupName(filename) && !filename.startsWith('development-')) {
       // if we want to allow custom file names
@@ -229,6 +230,7 @@ export async function restoreBackup(
     });
 
     const [progressSource, progressSink] = createSqlProgressStreams((progress) => {
+      if (complete) return;
       logger.log(`Restore progress ~ ${(progress * 100).toFixed(2)}%`);
       progressCb?.('restore', progress);
     });
@@ -237,6 +239,8 @@ export async function restoreBackup(
   } catch (error) {
     logger.error(`Database Restore Failure: ${error}`);
     throw error;
+  } finally {
+    complete = true;
   }
 
   logger.log(`Database Restore Success`);
