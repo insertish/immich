@@ -40,6 +40,7 @@ export type ActivityStatisticsResponseDto = {
     comments: number;
     likes: number;
 };
+<<<<<<< HEAD
 export type IntegrityGetReportDto = {
     cursor?: string;
     limit?: number;
@@ -58,15 +59,42 @@ export type IntegrityReportSummaryResponseDto = {
     checksum_mismatch: number;
     missing_file: number;
     untracked_file: number;
+=======
+export type DatabaseBackupDeleteDto = {
+    backups: string[];
+};
+export type DatabaseBackupListResponseDto = {
+    backups: string[];
+};
+export type DatabaseBackupUploadDto = {
+    file?: Blob;
+>>>>>>> feat/database-restores
 };
 export type SetMaintenanceModeDto = {
     action: MaintenanceAction;
+    restoreBackupFilename?: string;
+};
+export type MaintenanceDetectInstallStorageFolderDto = {
+    files: number;
+    folder: StorageFolder;
+    readable: boolean;
+    writable: boolean;
+};
+export type MaintenanceDetectInstallResponseDto = {
+    storage: MaintenanceDetectInstallStorageFolderDto[];
 };
 export type MaintenanceLoginDto = {
     token?: string;
 };
 export type MaintenanceAuthDto = {
     username: string;
+};
+export type MaintenanceStatusResponseDto = {
+    action: MaintenanceAction;
+    active: boolean;
+    error?: string;
+    progress?: number;
+    task?: string;
 };
 export type NotificationCreateDto = {
     data?: object;
@@ -1957,6 +1985,7 @@ export function unlinkAllOAuthAccountsAdmin(opts?: Oazapfts.RequestOpts) {
     }));
 }
 /**
+<<<<<<< HEAD
  * Get integrity report by type
  */
 export function getIntegrityReport({ integrityGetReportDto }: {
@@ -2016,6 +2045,61 @@ export function getIntegrityReportSummary(opts?: Oazapfts.RequestOpts) {
         status: 200;
         data: IntegrityReportSummaryResponseDto;
     }>("/admin/integrity/summary", {
+=======
+ * Delete database backup
+ */
+export function deleteDatabaseBackup({ databaseBackupDeleteDto }: {
+    databaseBackupDeleteDto: DatabaseBackupDeleteDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/database-backups", oazapfts.json({
+        ...opts,
+        method: "DELETE",
+        body: databaseBackupDeleteDto
+    })));
+}
+/**
+ * List database backups
+ */
+export function listDatabaseBackups(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: DatabaseBackupListResponseDto;
+    }>("/admin/database-backups", {
+        ...opts
+    }));
+}
+/**
+ * Start database backup restore flow
+ */
+export function startDatabaseRestoreFlow(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/database-backups/start-restore", {
+        ...opts,
+        method: "POST"
+    }));
+}
+/**
+ * Upload database backup
+ */
+export function uploadDatabaseBackup({ databaseBackupUploadDto }: {
+    databaseBackupUploadDto: DatabaseBackupUploadDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText("/admin/database-backups/upload", oazapfts.multipart({
+        ...opts,
+        method: "POST",
+        body: databaseBackupUploadDto
+    })));
+}
+/**
+ * Download database backup
+ */
+export function downloadDatabaseBackup({ filename }: {
+    filename: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchBlob<{
+        status: 200;
+        data: Blob;
+    }>(`/admin/database-backups/${encodeURIComponent(filename)}`, {
+>>>>>>> feat/database-restores
         ...opts
     }));
 }
@@ -2032,6 +2116,17 @@ export function setMaintenanceMode({ setMaintenanceModeDto }: {
     })));
 }
 /**
+ * Detect existing install
+ */
+export function detectPriorInstall(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: MaintenanceDetectInstallResponseDto;
+    }>("/admin/maintenance/detect-install", {
+        ...opts
+    }));
+}
+/**
  * Log into maintenance mode
  */
 export function maintenanceLogin({ maintenanceLoginDto }: {
@@ -2045,6 +2140,17 @@ export function maintenanceLogin({ maintenanceLoginDto }: {
         method: "POST",
         body: maintenanceLoginDto
     })));
+}
+/**
+ * Get maintenance mode status
+ */
+export function getMaintenanceStatus(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: MaintenanceStatusResponseDto;
+    }>("/admin/maintenance/status", {
+        ...opts
+    }));
 }
 /**
  * Create a notification
@@ -5401,7 +5507,17 @@ export enum IntegrityReportType {
 }
 export enum MaintenanceAction {
     Start = "start",
-    End = "end"
+    End = "end",
+    SelectDatabaseRestore = "select_database_restore",
+    RestoreDatabase = "restore_database"
+}
+export enum StorageFolder {
+    EncodedVideo = "encoded-video",
+    Library = "library",
+    Upload = "upload",
+    Profile = "profile",
+    Thumbs = "thumbs",
+    Backups = "backups"
 }
 export enum NotificationLevel {
     Success = "success",
@@ -5499,6 +5615,10 @@ export enum Permission {
     AuthChangePassword = "auth.changePassword",
     AuthDeviceDelete = "authDevice.delete",
     ArchiveRead = "archive.read",
+    BackupList = "backup.list",
+    BackupDownload = "backup.download",
+    BackupUpload = "backup.upload",
+    BackupDelete = "backup.delete",
     DuplicateRead = "duplicate.read",
     DuplicateDelete = "duplicate.delete",
     FaceCreate = "face.create",

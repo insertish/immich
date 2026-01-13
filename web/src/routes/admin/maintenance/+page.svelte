@@ -1,7 +1,11 @@
 <script lang="ts">
   import AdminPageLayout from '$lib/components/layouts/AdminPageLayout.svelte';
+  import MaintenanceBackupsList from '$lib/components/maintenance/MaintenanceBackupsList.svelte';
   import ServerStatisticsCard from '$lib/components/server-statistics/ServerStatisticsCard.svelte';
-  import { AppRoute } from '$lib/constants';
+  import SettingAccordionState from '$lib/components/shared-components/settings/setting-accordion-state.svelte';
+  import SettingAccordion from '$lib/components/shared-components/settings/setting-accordion.svelte';
+  import { AppRoute, QueryParameter } from '$lib/constants';
+  import { getMaintenanceAdminActions } from '$lib/services/maintenance.service';
   import { asyncTimeout } from '$lib/utils';
   import { handleError } from '$lib/utils/handle-error';
   import {
@@ -9,14 +13,12 @@
     getIntegrityReportSummary,
     getQueuesLegacy,
     IntegrityReportType,
-    MaintenanceAction,
     ManualJobName,
-    setMaintenanceMode,
     type IntegrityReportSummaryResponseDto,
     type QueuesResponseLegacyDto,
   } from '@immich/sdk';
   import { Button, HStack, toastManager } from '@immich/ui';
-  import { mdiProgressWrench } from '@mdi/js';
+  import { mdiRefresh } from '@mdi/js';
   import { onDestroy, onMount } from 'svelte';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -26,6 +28,7 @@
   }
 
   let { data }: Props = $props();
+  const { StartMaintenance } = $derived(getMaintenanceAdminActions($t));
 
   let integrityReport: IntegrityReportSummaryResponseDto = $state(data.integrityReport);
 
@@ -34,18 +37,6 @@
     IntegrityReportType.MissingFile,
     IntegrityReportType.ChecksumMismatch,
   ];
-
-  async function switchToMaintenance() {
-    try {
-      await setMaintenanceMode({
-        setMaintenanceModeDto: {
-          action: MaintenanceAction.Start,
-        },
-      });
-    } catch (error) {
-      handleError(error, $t('admin.maintenance_start_error'));
-    }
-  }
 
   let jobs: QueuesResponseLegacyDto | undefined = $state();
   let expectingUpdate: boolean = $state(false);
@@ -106,18 +97,9 @@
   });
 </script>
 
-<AdminPageLayout
-  breadcrumbs={[{ title: data.meta.title }]}
-  actions={[
-    {
-      title: $t('admin.maintenance_start'),
-      onAction: switchToMaintenance,
-      icon: mdiProgressWrench,
-    },
-  ]}
->
+<AdminPageLayout breadcrumbs={[{ title: data.meta.title }]} actions={[StartMaintenance]}>
   <section id="setting-content" class="flex place-content-center sm:mx-4">
-    <section class="w-full pb-28 sm:w-5/6 md:w-[850px]">
+    <section class="w-full sm:w-5/6 md:w-[850px]">
       <HStack>
         <p class="text-sm dark:text-immich-dark-fg uppercase">{$t('admin.maintenance_integrity_report')}</p>
         <Button
@@ -169,6 +151,23 @@
           </ServerStatisticsCard>
         {/each}
       </div>
+    </section>
+  </section>
+
+  <section id="setting-content" class="flex place-content-center sm:mx-4 mt-4">
+    <section class="w-full sm:w-5/6 md:w-212.5">
+      <p class="text-sm dark:text-immich-dark-fg uppercase">sub heading</p>
+
+      <SettingAccordionState queryParam={QueryParameter.IS_OPEN}>
+        <SettingAccordion
+          title={$t('admin.maintenance_restore_database_backup')}
+          subtitle={$t('admin.maintenance_restore_database_backup_description')}
+          icon={mdiRefresh}
+          key="backups"
+        >
+          <MaintenanceBackupsList backups={data.backups} />
+        </SettingAccordion>
+      </SettingAccordionState>
     </section>
   </section>
 </AdminPageLayout>
