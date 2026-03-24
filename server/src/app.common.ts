@@ -2,7 +2,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { json } from 'body-parser';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import { Request, Response } from 'express';
 import { existsSync } from 'node:fs';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import sirv from 'sirv';
 import { excludePaths, serverVersion } from 'src/constants';
 import { MaintenanceWorkerService } from 'src/maintenance/maintenance-worker.service';
@@ -12,6 +14,7 @@ import { LoggingRepository } from 'src/repositories/logging.repository';
 import { bootstrapTelemetry } from 'src/repositories/telemetry.repository';
 import { ApiService } from 'src/services/api.service';
 import { useSwagger } from 'src/utils/misc';
+import { AuthService } from './services/auth.service';
 
 export function configureTelemetry() {
   const { telemetry } = new ConfigRepository().getEnv();
@@ -47,6 +50,46 @@ export async function configureExpress(
 
   app.set('trust proxy', ['loopback', ...network.trustedProxies]);
   app.set('etag', 'strong');
+
+  const auth = app.get(AuthService);
+
+  app.use(
+    '/api/yucca',
+    async (req: Request, res: Response, next: () => void) => {
+      try {
+        await auth.authenticate({
+          headers: req.headers,
+          queryParams: {},
+          metadata: { adminRoute: true, sharedLinkRoute: false, uri: req.url },
+        });
+        next();
+      } catch {
+        res.status(401).json({ message: 'Unauthorized' });
+      }
+    },
+  );
+  app.use(
+    createProxyMiddleware({
+      target: 'http://127.0.0.1:22676',
+      pathFilter: '/api/yucca/**',
+      ws: true,
+      on: {
+        proxyReqWs: async (_proxyReq, req, socket) => {
+          try {
+            await auth.authenticate({
+              headers: req.headers,
+              queryParams: {},
+              metadata: { adminRoute: true, sharedLinkRoute: false, uri: req.url ?? '' },
+            });
+          } catch {
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+            socket.destroy();
+          }
+        },
+      },
+    }),
+  );
+
   app.use(cookieParser());
   app.use(json({ limit: '10mb' }));
 
