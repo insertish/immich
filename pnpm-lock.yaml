@@ -472,9 +472,6 @@ importers:
       handlebars:
         specifier: ^4.7.8
         version: 4.7.8
-      http-proxy-middleware:
-        specifier: ^3.0.5
-        version: 3.0.5
       i18n-iso-countries:
         specifier: ^7.6.0
         version: 7.14.0
@@ -527,8 +524,8 @@ importers:
         specifier: ^6.3.3
         version: 6.8.2
       orchestration-api:
-        specifier: ^1.0.8
-        version: 1.0.8(@nestjs/platform-express@11.1.16)(class-transformer@0.5.1)(reflect-metadata@0.2.2)
+        specifier: ^0.1.7
+        version: 0.1.7(@nestjs/platform-express@11.1.16)(class-transformer@0.5.1)(reflect-metadata@0.2.2)
       pg:
         specifier: ^8.11.3
         version: 8.20.0
@@ -822,8 +819,8 @@ importers:
         specifier: ^5.6.2
         version: 5.19.0
       orchestration-ui:
-        specifier: ^0.0.7
-        version: 0.0.7(@sveltejs/kit@2.53.4(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)(typescript@5.9.3)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)
+        specifier: ^0.1.5
+        version: 0.1.5(@sveltejs/kit@2.53.4(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)(typescript@5.9.3)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)
       pmtiles:
         specifier: ^4.3.0
         version: 4.4.0
@@ -7892,10 +7889,6 @@ packages:
       '@types/express':
         optional: true
 
-  http-proxy-middleware@3.0.5:
-    resolution: {integrity: sha512-GLZZm1X38BPY4lkXA01jhwxvDoOkkXqjgVyUzVxiEK4iuRu03PZoYHhHRwxnfhQMDuaxi3vVri0YgSro/1oWqg==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-
   http-proxy@1.18.1:
     resolution: {integrity: sha512-7mz/721AbnJwIVbnaSv1Cz3Am0ZLT/UBwkC92VlxhXv/k/BBQfM2fXElQNC27BVGr0uwUpplYPQM9LnaBMR5NQ==}
     engines: {node: '>=8.0.0'}
@@ -9484,11 +9477,11 @@ packages:
     resolution: {integrity: sha512-weP+BZ8MVNnlCm8c0Qdc1WSWq4Qn7I+9CJGm7Qali6g44e/PUzbjNqJX5NJ9ljlNMosfJvg1fKEGILklK9cwnw==}
     engines: {node: '>=18'}
 
-  orchestration-api@1.0.8:
-    resolution: {integrity: sha512-G2/SmHJaPV8syZAcP3+PKzOYimWxWpE2BOMcROnKQn/BDlQhSd34wupa0X9cbzAygz/VxaBE0El1rFI15dRpvg==}
+  orchestration-api@0.1.7:
+    resolution: {integrity: sha512-IFDHkbSV8Nzkv5dCgVdluHgq+xHW771gIB++Oli/wUk17eEtU6u5K69JYtbizug+WY/ePe2nBrjmanXHd63G6w==}
 
-  orchestration-ui@0.0.7:
-    resolution: {integrity: sha512-RNcVIIachwuSdUReVGQFxPvpXYJN5dk27yl00jjB64spQPJn4Rk3laxBgeMclQrCRIdFIWu2jRXM2n++C4zTug==}
+  orchestration-ui@0.1.5:
+    resolution: {integrity: sha512-Er/ctFkvb8UcsrIGOUd7iJha+yW/Yczk1+G92Um3kJteOUccx1PQCiQttRG8ukly2mgFSPyhGDOiKV/h0IQ3Aw==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -12376,8 +12369,11 @@ packages:
     resolution: {integrity: sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==}
     engines: {node: '>=18'}
 
-  yucca-api-client@1.0.7:
-    resolution: {integrity: sha512-A943evu5oMHyEsTlVap5VGxwkV7NlyyhrROtZvlOBLj9XNOtuDlTvpF/CWsfikvtMIQ9Vb/lYslULZbk2z2hsg==}
+  yucca-api-client@0.1.5:
+    resolution: {integrity: sha512-JUEuRkfnhCKrWMXSA51SfiTwLBH+8yxyWhoVsi1ED+OwbmaFdBZnXThnF6PX2fdnqNtDOn0Dvb+kiwoT4KWlSw==}
+
+  yucca-api-client@0.1.7:
+    resolution: {integrity: sha512-jWnMhSU7gBwvn5WWrX5CGbwYfYggmFJlXxNFgqRuTsGYWo0tMFEl5FsMy5PUSjg8tbda0ez/BRsUnIHp6aRLtw==}
 
   yup@1.7.1:
     resolution: {integrity: sha512-GKHFX2nXul2/4Dtfxhozv701jLQHdf6J34YDh2cEkpqoo8le5Mg6/LrdseVLrFarmFygZTlfIhHx/QKfb/QWXw==}
@@ -20190,10 +20186,6 @@ snapshots:
 
   follow-redirects@1.15.11: {}
 
-  follow-redirects@1.15.11(debug@4.4.3):
-    optionalDependencies:
-      debug: 4.4.3
-
   foreground-child@3.3.1:
     dependencies:
       cross-spawn: 7.0.6
@@ -20807,29 +20799,10 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  http-proxy-middleware@3.0.5:
-    dependencies:
-      '@types/http-proxy': 1.17.17
-      debug: 4.4.3
-      http-proxy: 1.18.1(debug@4.4.3)
-      is-glob: 4.0.3
-      is-plain-object: 5.0.0
-      micromatch: 4.0.8
-    transitivePeerDependencies:
-      - supports-color
-
   http-proxy@1.18.1:
     dependencies:
       eventemitter3: 4.0.7
       follow-redirects: 1.15.11
-      requires-port: 1.0.0
-    transitivePeerDependencies:
-      - debug
-
-  http-proxy@1.18.1(debug@4.4.3):
-    dependencies:
-      eventemitter3: 4.0.7
-      follow-redirects: 1.15.11(debug@4.4.3)
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -22732,7 +22705,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.2.0
 
-  orchestration-api@1.0.8(@nestjs/platform-express@11.1.16)(class-transformer@0.5.1)(reflect-metadata@0.2.2):
+  orchestration-api@0.1.7(@nestjs/platform-express@11.1.16)(class-transformer@0.5.1)(reflect-metadata@0.2.2):
     dependencies:
       '@futo-org/restic-wrapper': 1.1.1
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -22752,7 +22725,7 @@ snapshots:
       rxjs: 7.8.2
       socket.io: 4.8.3
       tail: 2.2.6
-      yucca-api-client: 1.0.7
+      yucca-api-client: 0.1.7
     transitivePeerDependencies:
       - '@nestjs/microservices'
       - '@nestjs/platform-express'
@@ -22762,7 +22735,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  orchestration-ui@0.0.7(@sveltejs/kit@2.53.4(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)(typescript@5.9.3)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7):
+  orchestration-ui@0.1.5(@sveltejs/kit@2.53.4(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)(typescript@5.9.3)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7):
     dependencies:
       '@immich/ui': 0.59.0(@sveltejs/kit@2.53.4(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)(typescript@5.9.3)(vite@7.3.1(@types/node@25.4.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)))(svelte@5.53.7)
       '@mdi/js': 7.4.47
@@ -22774,7 +22747,7 @@ snapshots:
       luxon: 3.7.2
       socket.io-client: 4.8.3
       svelte: 5.53.7
-      yucca-api-client: 1.0.7
+      yucca-api-client: 0.1.5
     transitivePeerDependencies:
       - '@sveltejs/kit'
       - bufferutil
@@ -26287,7 +26260,11 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  yucca-api-client@1.0.7:
+  yucca-api-client@0.1.5:
+    dependencies:
+      '@oazapfts/runtime': 1.2.0
+
+  yucca-api-client@0.1.7:
     dependencies:
       '@oazapfts/runtime': 1.2.0
 

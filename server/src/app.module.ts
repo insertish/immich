@@ -5,6 +5,7 @@ import { ScheduleModule, SchedulerRegistry } from '@nestjs/schedule';
 import { ClsModule } from 'nestjs-cls';
 import { KyselyModule } from 'nestjs-kysely';
 import { OpenTelemetryModule } from 'nestjs-otel';
+import { OrchestrationApiModule } from 'orchestration-api/dist';
 import { commandsAndQuestions } from 'src/commands';
 import { IWorker } from 'src/constants';
 import { controllers } from 'src/controllers';
@@ -96,14 +97,29 @@ export class BaseModule implements OnModuleInit, OnModuleDestroy {
 }
 
 @Module({
-  imports: [...bullImports, ...commonImports, ScheduleModule.forRoot()],
+  imports: [
+    ...bullImports,
+    ...commonImports,
+    ScheduleModule.forRoot(),
+    OrchestrationApiModule.forRoot({
+      yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
+      statePath: '/yucca', // TODO
+    }),
+  ],
   controllers: [...controllers],
   providers: [...common, ...apiMiddleware, { provide: IWorker, useValue: ImmichWorker.Api }],
 })
 export class ApiModule extends BaseModule {}
 
 @Module({
-  imports: [...commonImports],
+  imports: [
+    ...commonImports,
+    OrchestrationApiModule.forRoot({
+      yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
+      statePath: '/yucca', // TODO
+      externalBaseUrl: 'https://my.immich.app'
+    }),
+  ],
   controllers: [MaintenanceWorkerController],
   providers: [
     ConfigRepository,
