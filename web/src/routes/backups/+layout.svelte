@@ -20,7 +20,12 @@
 
   <AppShellSidebar open={true}>
     <div class="flex flex-col pt-8 pe-4 gap-1">
-      <NavbarItem title="Dashboard" href={Route.backups()} icon={mdiViewDashboard} isActive={() => page.url.pathname === '/backups'} />
+      <NavbarItem
+        title="Dashboard"
+        href={Route.backups()}
+        icon={mdiViewDashboard}
+        isActive={() => page.url.pathname === '/backups'}
+      />
       <NavbarItem title="Repositories" href={Route.backupsRepositories()} icon={mdiBackupRestore} />
       <NavbarItem title="Schedules" href={Route.backupsSchedules()} icon={mdiClock} />
       <NavbarItem title="Configure" href={Route.backupsConfig()} icon={mdiCog} />
@@ -29,7 +34,7 @@
 
   <YuccaContext baseUrl={window.location.origin}>
     <div class="p-4 flex flex-col gap-2 max-w-6xl m-auto">
-      <OnboardingGate>
+      <OnboardingGate flow="immich-setup">
         {@render children()}
       </OnboardingGate>
     </div>

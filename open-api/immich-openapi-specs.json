@@ -15264,6 +15264,27 @@
         ]
       }
     },
+    "/yucca/integrations": {
+      "get": {
+        "operationId": "getIntegrations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationsResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
     "/yucca/logs/{id}": {
       "get": {
         "operationId": "logStreamSse",
@@ -19040,6 +19061,60 @@
         ],
         "type": "string"
       },
+      "ImmichIntegrationConfigDto": {
+        "properties": {
+          "dataFolders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dataPath": {
+            "type": "string"
+          },
+          "libraries": {
+            "items": {
+              "$ref": "#/components/schemas/ImmichLibraryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "dataFolders",
+          "dataPath",
+          "libraries"
+        ],
+        "type": "object"
+      },
+      "ImmichLibraryDto": {
+        "properties": {
+          "exclusionPatterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "importPaths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "exclusionPatterns",
+          "id",
+          "importPaths",
+          "name"
+        ],
+        "type": "object"
+      },
       "ImportRecoveryKeyRequest": {
         "properties": {
           "recoveryKey": {
@@ -19049,6 +19124,14 @@
         "required": [
           "recoveryKey"
         ],
+        "type": "object"
+      },
+      "IntegrationsResponseDto": {
+        "properties": {
+          "immich": {
+            "$ref": "#/components/schemas/ImmichIntegrationConfigDto"
+          }
+        },
         "type": "object"
       },
       "JobCreateDto": {

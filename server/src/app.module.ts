@@ -37,6 +37,7 @@ import { CliService } from 'src/services/cli.service';
 import { DatabaseBackupService } from 'src/services/database-backup.service';
 import { QueueService } from 'src/services/queue.service';
 import { getKyselyConfig } from 'src/utils/database';
+import { YuccaAdminGuard } from './middleware/yucca-admin.guard';
 
 const common = [...repositories, ...services, GlobalExceptionFilter];
 
@@ -47,7 +48,12 @@ const commonMiddleware = [
   { provide: APP_INTERCEPTOR, useClass: ErrorInterceptor },
 ];
 
-const apiMiddleware = [FileUploadInterceptor, ...commonMiddleware, { provide: APP_GUARD, useClass: AuthGuard }];
+const apiMiddleware = [
+  FileUploadInterceptor,
+  ...commonMiddleware,
+  { provide: APP_GUARD, useClass: YuccaAdminGuard },
+  { provide: APP_GUARD, useClass: AuthGuard },
+];
 
 const configRepository = new ConfigRepository();
 const { bull, cls, database, otel } = configRepository.getEnv();
@@ -104,6 +110,7 @@ export class BaseModule implements OnModuleInit, OnModuleDestroy {
     OrchestrationApiModule.forRoot({
       yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
       statePath: '/yucca', // TODO
+      requireWsAuth: true,
     }),
   ],
   controllers: [...controllers],
@@ -117,7 +124,8 @@ export class ApiModule extends BaseModule {}
     OrchestrationApiModule.forRoot({
       yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
       statePath: '/yucca', // TODO
-      externalBaseUrl: 'https://my.immich.app'
+      externalBaseUrl: 'https://my.immich.app',
+      requireWsAuth: true,
     }),
   ],
   controllers: [MaintenanceWorkerController],

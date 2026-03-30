@@ -4,8 +4,10 @@
   import { Route } from '$lib/route';
 </script>
 
-<Dashboard onNavigate={(target) => {
-  if (target === 'backups') goto(Route.backupsRepositories());
-  else if (target === 'schedules') goto(Route.backupsSchedules());
-  else if (target === 'config') goto(Route.backupsConfig());
-}} />
+<Dashboard
+  onNavigate={(target) => {
+    if (target === 'backups') goto(Route.backupsRepositories());
+    else if (target === 'schedules') goto(Route.backupsSchedules());
+    else if (target === 'config') goto(Route.backupsConfig());
+  }}
+/>

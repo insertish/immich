@@ -15,10 +15,10 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(ApiModule, { bufferLogs: true });
   app.get(AppRepository).setCloseFn(() => app.close());
-  
+
   const config = await app.get(ServerService).getConfig({ withCache: true });
   app.get(ModuleConfigRepository).update({
-    externalBaseUrl: getExternalDomain(config.server)
+    externalBaseUrl: getExternalDomain(config.server),
   });
 
   void configureExpress(app, {
