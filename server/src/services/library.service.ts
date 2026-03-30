@@ -17,7 +17,17 @@ import {
   ValidateLibraryImportPathResponseDto,
   ValidateLibraryResponseDto,
 } from 'src/dtos/library.dto';
-import { AssetStatus, AssetType, CronJob, DatabaseLock, ImmichWorker, JobName, JobStatus, QueueName } from 'src/enum';
+import {
+  AssetStatus,
+  AssetType,
+  ChecksumAlgorithm,
+  CronJob,
+  DatabaseLock,
+  ImmichWorker,
+  JobName,
+  JobStatus,
+  QueueName,
+} from 'src/enum';
 import { ArgOf } from 'src/repositories/event.repository';
 import { AssetSyncResult } from 'src/repositories/library.repository';
 import { AssetTable } from 'src/schema/tables/asset.table';
@@ -405,6 +415,7 @@ export class LibraryService extends BaseService {
       ownerId,
       libraryId,
       checksum: this.cryptoRepository.hashSha1(`path:${assetPath}`),
+      checksumAlgorithm: ChecksumAlgorithm.sha1Path,
       originalPath: assetPath,
 
       fileCreatedAt: stat.mtime,
