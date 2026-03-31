@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModuleRef, Reflector } from '@nestjs/core';
 import { ClassConstructor } from 'class-transformer';
 import _ from 'lodash';
+import { GatewayEvent as YuccaGatewayEvent } from 'orchestration-api/dist/events/events.gateway';
 import { Socket } from 'socket.io';
 import { SystemConfig } from 'src/config';
 import { Asset } from 'src/database';
@@ -99,6 +100,8 @@ type EventMap = {
 
   // websocket events
   WebsocketConnect: [{ userId: string }];
+
+  YuccaEvent: [YuccaGatewayEvent];
 };
 
 export type AppRestartEvent = {

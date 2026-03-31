@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import NavigationBar from '$lib/components/shared-components/navigation-bar/navigation-bar.svelte';
   import { Route } from '$lib/route';
   import { AppShell, AppShellHeader, AppShellSidebar, NavbarItem } from '@immich/ui';
   import { mdiBackupRestore, mdiClock, mdiCog, mdiViewDashboard } from '@mdi/js';
-  import { YuccaContext, OnboardingGate, orchestrationApiProvider, sdk, setProvider } from 'orchestration-ui';
-  import { page } from '$app/state';
+  import { OnboardingGate, orchestrationApiProvider, sdk, setProvider, YuccaContext } from 'orchestration-ui';
   import type { Snippet } from 'svelte';
 
   let { children }: { children: Snippet } = $props();
@@ -34,7 +35,7 @@
 
   <YuccaContext baseUrl={window.location.origin}>
     <div class="p-4 flex flex-col gap-2 max-w-6xl m-auto">
-      <OnboardingGate flow="immich-setup">
+      <OnboardingGate flow="immich-setup" onExit={() => goto('/')}>
         {@render children()}
       </OnboardingGate>
     </div>

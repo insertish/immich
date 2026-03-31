@@ -15344,6 +15344,30 @@
         ]
       }
     },
+    "/yucca/integrations/immich": {
+      "post": {
+        "operationId": "configureImmichIntegration",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigureImmichIntegrationRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
     "/yucca/logs/{id}": {
       "get": {
         "operationId": "logStreamSse",
@@ -18421,6 +18445,53 @@
         ],
         "type": "string"
       },
+      "ConfigureImmichIntegrationRequestDto": {
+        "properties": {
+          "backupConfiguration": {
+            "type": "boolean"
+          },
+          "cron": {
+            "type": "string"
+          },
+          "dataFolders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "libraries": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "all"
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "worm": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "backupConfiguration",
+          "cron",
+          "dataFolders",
+          "libraries",
+          "name",
+          "worm"
+        ],
+        "type": "object"
+      },
       "ContributorCountResponseDto": {
         "properties": {
           "assetCount": {
@@ -19180,28 +19251,57 @@
         ],
         "type": "string"
       },
-      "ImmichIntegrationConfigDto": {
+      "ImmichIntegrationConfigurationDto": {
         "properties": {
+          "backupConfiguration": {
+            "type": "boolean"
+          },
           "dataFolders": {
             "items": {
               "type": "string"
             },
             "type": "array"
           },
-          "dataPath": {
-            "type": "string"
-          },
           "libraries": {
-            "items": {
-              "$ref": "#/components/schemas/ImmichLibraryDto"
-            },
-            "type": "array"
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "all"
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
           }
         },
         "required": [
+          "backupConfiguration",
           "dataFolders",
-          "dataPath",
           "libraries"
+        ],
+        "type": "object"
+      },
+      "ImmichIntegrationDto": {
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/ImmichIntegrationConfigurationDto"
+          },
+          "id": {
+            "type": "string"
+          },
+          "scheduleId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "configuration",
+          "id",
+          "scheduleId"
         ],
         "type": "object"
       },
@@ -19234,6 +19334,31 @@
         ],
         "type": "object"
       },
+      "ImmichStateDto": {
+        "properties": {
+          "dataFolders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dataPath": {
+            "type": "string"
+          },
+          "libraries": {
+            "items": {
+              "$ref": "#/components/schemas/ImmichLibraryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "dataFolders",
+          "dataPath",
+          "libraries"
+        ],
+        "type": "object"
+      },
       "ImportRecoveryKeyRequest": {
         "properties": {
           "recoveryKey": {
@@ -19247,8 +19372,11 @@
       },
       "IntegrationsResponseDto": {
         "properties": {
-          "immich": {
-            "$ref": "#/components/schemas/ImmichIntegrationConfigDto"
+          "immichIntegration": {
+            "$ref": "#/components/schemas/ImmichIntegrationDto"
+          },
+          "immichState": {
+            "$ref": "#/components/schemas/ImmichStateDto"
           }
         },
         "type": "object"

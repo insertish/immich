@@ -1,22 +1,30 @@
-import { Injectable, OnModuleInit, Optional } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
 import { EventsGateway, ModuleConfigRepository } from 'orchestration-api/dist';
+import { GatewayEvent } from 'orchestration-api/dist/events/events.gateway';
 import { SystemConfig } from 'src/config';
 import { StorageCore } from 'src/cores/storage.core';
 import { OnEvent } from 'src/decorators';
 import { ImmichWorker, StorageFolder } from 'src/enum';
-import { ArgOf } from 'src/repositories/event.repository';
+import { ArgOf, EventRepository } from 'src/repositories/event.repository';
 import { LibraryRepository } from 'src/repositories/library.repository';
+import { LoggingRepository } from 'src/repositories/logging.repository';
+import { WebsocketRepository } from 'src/repositories/websocket.repository';
 import { getExternalDomain } from 'src/utils/misc';
 import { AuthService } from './auth.service';
 
 @Injectable()
-export class YuccaService implements OnModuleInit {
+export class YuccaService implements OnModuleInit, OnModuleDestroy {
   constructor(
+    private readonly logger: LoggingRepository,
     private readonly libraryRepository: LibraryRepository,
     private readonly authService: AuthService,
+    private readonly eventRepository: EventRepository,
+    private readonly websocketRepository: WebsocketRepository,
     @Optional() private readonly moduleConfig: ModuleConfigRepository,
     @Optional() private readonly eventsGateway: EventsGateway,
-  ) {}
+  ) {
+    this.onInternalEvent = this.onInternalEvent.bind(this);
+  }
 
   onModuleInit() {
     if (this.eventsGateway) {
@@ -27,7 +35,13 @@ export class YuccaService implements OnModuleInit {
           metadata: { adminRoute: true, sharedLinkRoute: false, uri: '/api/yucca/socket.io' },
         }),
       );
+
+      this.eventsGateway.on(this.onInternalEvent);
     }
+  }
+
+  onModuleDestroy() {
+    this.eventsGateway.off(this.onInternalEvent);
   }
 
   private async updateSystemConfig({ server }: SystemConfig) {
@@ -72,5 +86,14 @@ export class YuccaService implements OnModuleInit {
   @OnEvent({ name: 'LibraryDelete', workers: [ImmichWorker.Api], server: true })
   onLibraryDelete() {
     void this.updateLibraryConfig();
+  }
+
+  @OnEvent({ name: 'YuccaEvent', workers: [ImmichWorker.Api], server: true })
+  onYuccaEvent(event: GatewayEvent) {
+    this.eventsGateway.emit(event);
+  }
+
+  onInternalEvent(event: GatewayEvent) {
+    this.websocketRepository.serverSend('YuccaEvent', event);
   }
 }
