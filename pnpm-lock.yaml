@@ -524,8 +524,8 @@ importers:
         specifier: ^6.3.3
         version: 6.8.2
       orchestration-api:
-        specifier: ^0.1.40
-        version: 0.1.40(@nestjs/platform-express@11.1.17)(class-transformer@0.5.1)(reflect-metadata@0.2.2)
+        specifier: ^0.1.43
+        version: 0.1.43(@nestjs/platform-express@11.1.17)(class-transformer@0.5.1)(reflect-metadata@0.2.2)
       pg:
         specifier: ^8.11.3
         version: 8.20.0
@@ -819,8 +819,8 @@ importers:
         specifier: ^5.6.2
         version: 5.21.0
       orchestration-ui:
-        specifier: 0.1.40
-        version: 0.1.40(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)
+        specifier: 0.1.43
+        version: 0.1.43(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)
       pmtiles:
         specifier: ^4.3.0
         version: 4.4.0
@@ -9606,11 +9606,11 @@ packages:
     resolution: {integrity: sha512-weP+BZ8MVNnlCm8c0Qdc1WSWq4Qn7I+9CJGm7Qali6g44e/PUzbjNqJX5NJ9ljlNMosfJvg1fKEGILklK9cwnw==}
     engines: {node: '>=18'}
 
-  orchestration-api@0.1.40:
-    resolution: {integrity: sha512-LUMwMyO5NxsmCWm9cx0KgFq7K8Lt+2JfX+VdNIDwYvu8p+aRpTDjnazJ9uz8B8HxhSzz5TNKArmt49eQeegmXg==}
+  orchestration-api@0.1.43:
+    resolution: {integrity: sha512-q0QwMcjEa09lUgREj+u+JMwxiyO47rTGtg8c0SkZTgieSOpV3MRzB8wBDKjbjSxFWuqxVNUk/14In9n4s61Pdw==}
 
-  orchestration-ui@0.1.40:
-    resolution: {integrity: sha512-pgMIJEnzgWE7wdtrKx4fZrVzAtvB1T+1YeyRjQDlp42wUWia5OfhlJppw8syZHqQJyWYj9BFvV87JQ6pb13VOw==}
+  orchestration-ui@0.1.43:
+    resolution: {integrity: sha512-i0lKkbYhcV4Ha8zGq9Dx5FMHez3byFYGriVaFSsle8m1bGbWxBWvA2dxJd47N9b0whUHWw1uo9370gcNLZ+WYw==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -12550,8 +12550,8 @@ packages:
     resolution: {integrity: sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==}
     engines: {node: '>=18'}
 
-  yucca-api-client@0.1.40:
-    resolution: {integrity: sha512-nYzNipobnDObzA/i9m/aYYcri5dAuCeojo11YzVe+Q6T0WVgOs5yO0+WJo1JwVsAjlQeCaz3gsWbmlwqMKEXTA==}
+  yucca-api-client@0.1.43:
+    resolution: {integrity: sha512-MQQOih47JrPdDm5IlPJnd2n6anKugZ1OUZIWufPN/99dkr++t8jCP9wLO4OrIvYLVgmyUuKJFn88vpN3LUhnSA==}
 
   yup@1.7.1:
     resolution: {integrity: sha512-GKHFX2nXul2/4Dtfxhozv701jLQHdf6J34YDh2cEkpqoo8le5Mg6/LrdseVLrFarmFygZTlfIhHx/QKfb/QWXw==}
@@ -22823,7 +22823,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.2.0
 
-  orchestration-api@0.1.40(@nestjs/platform-express@11.1.17)(class-transformer@0.5.1)(reflect-metadata@0.2.2):
+  orchestration-api@0.1.43(@nestjs/platform-express@11.1.17)(class-transformer@0.5.1)(reflect-metadata@0.2.2):
     dependencies:
       '@futo-org/restic-wrapper': 1.1.1
       '@nestjs/common': 11.1.17(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -22844,7 +22844,7 @@ snapshots:
       rxjs: 7.8.2
       socket.io: 4.8.3
       tail: 2.2.6
-      yucca-api-client: 0.1.40
+      yucca-api-client: 0.1.43
     transitivePeerDependencies:
       - '@nestjs/microservices'
       - '@nestjs/platform-express'
@@ -22854,7 +22854,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  orchestration-ui@0.1.40(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1):
+  orchestration-ui@0.1.43(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1):
     dependencies:
       '@immich/ui': 0.59.0(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.0)(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.1)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.54.1)
       '@mdi/js': 7.4.47
@@ -22866,7 +22866,7 @@ snapshots:
       luxon: 3.7.2
       socket.io-client: 4.8.3
       svelte: 5.54.1
-      yucca-api-client: 0.1.40
+      yucca-api-client: 0.1.43
     transitivePeerDependencies:
       - '@sveltejs/kit'
       - bufferutil
@@ -26352,7 +26352,7 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  yucca-api-client@0.1.40:
+  yucca-api-client@0.1.43:
     dependencies:
       '@oazapfts/runtime': 1.2.0
 

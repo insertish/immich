@@ -112,6 +112,7 @@ export class BaseModule implements OnModuleInit, OnModuleDestroy {
       yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
       statePath: '/yucca', // TODO
       requireWsAuth: true,
+      requireLock: true,
     }),
   ],
   controllers: [...controllers],
@@ -127,6 +128,7 @@ export class ApiModule extends BaseModule {}
       statePath: '/yucca', // TODO
       externalBaseUrl: 'https://my.immich.app',
       requireWsAuth: true,
+      requireLock: true,
     }),
   ],
   controllers: [MaintenanceWorkerController],

@@ -4,7 +4,8 @@ import { GatewayEvent } from 'orchestration-api/dist/events/events.gateway';
 import { SystemConfig } from 'src/config';
 import { StorageCore } from 'src/cores/storage.core';
 import { OnEvent } from 'src/decorators';
-import { ImmichWorker, StorageFolder } from 'src/enum';
+import { DatabaseLock, ImmichWorker, StorageFolder } from 'src/enum';
+import { DatabaseRepository } from 'src/repositories/database.repository';
 import { ArgOf, EventRepository } from 'src/repositories/event.repository';
 import { LibraryRepository } from 'src/repositories/library.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
@@ -14,8 +15,11 @@ import { AuthService } from './auth.service';
 
 @Injectable()
 export class YuccaService implements OnModuleInit, OnModuleDestroy {
+  private lock = false;
+
   constructor(
     private readonly logger: LoggingRepository,
+    private readonly databaseRepository: DatabaseRepository,
     private readonly libraryRepository: LibraryRepository,
     private readonly authService: AuthService,
     private readonly eventRepository: EventRepository,
@@ -66,6 +70,12 @@ export class YuccaService implements OnModuleInit, OnModuleDestroy {
   async onConfigInit({ newConfig }: ArgOf<'ConfigInit'>) {
     void this.updateSystemConfig(newConfig);
     void this.updateLibraryConfig();
+
+    this.lock = await this.databaseRepository.tryLock(DatabaseLock.YuccaModuleConfig);
+
+    if (this.lock) {
+      this.moduleConfig.acquireLock();
+    }
   }
 
   @OnEvent({ name: 'ConfigUpdate', workers: [ImmichWorker.Api], server: true })

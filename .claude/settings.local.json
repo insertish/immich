@@ -5,7 +5,8 @@
       "Bash(find /home/insert/Projects/immich -maxdepth 2 -name .env* -type f)",
       "Bash(find /home/insert/Projects/immich/docs -name *.md)",
       "Bash(find /home/insert/Projects/immich -maxdepth 2 -name example.env -o -name *.env.example)",
-      "Bash(find /home/insert/Projects/immich -path */orchestration-api/dist -type d)"
+      "Bash(find /home/insert/Projects/immich -path */orchestration-api/dist -type d)",
+      "Bash(grep -rn \"fork\\\\|spawn\\\\|cluster\\\\|microservices\\\\|workers/api\\\\|workers/micro\" /home/insert/Projects/immich/server/src/main.ts /home/insert/Projects/immich/server/src/immich-*.ts)"
     ]
   }
 }

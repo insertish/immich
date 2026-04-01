@@ -707,6 +707,7 @@ export enum DatabaseLock {
   BackupDatabase = 42,
   MaintenanceOperation = 621,
   MemoryCreation = 777,
+  YuccaModuleConfig = 800,
 }
 
 export enum MaintenanceAction {
