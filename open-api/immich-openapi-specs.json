@@ -15540,6 +15540,27 @@
         ]
       }
     },
+    "/yucca/repository/inspect": {
+      "get": {
+        "operationId": "inspectRepositories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryInspectResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Repository"
+        ]
+      }
+    },
     "/yucca/repository/{id}": {
       "patch": {
         "operationId": "updateRepository",
@@ -15869,6 +15890,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FilesystemListingResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Repository"
+        ]
+      }
+    },
+    "/yucca/repository/{id}/snapshots/{snapshot}/restore-from-point": {
+      "post": {
+        "operationId": "restoreFromPoint",
+        "parameters": [
+          {
+            "name": "backend",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "snapshot",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepositorySnapshotRestoreFromPointRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponseDto"
                 }
               }
             },
@@ -19370,6 +19447,42 @@
         ],
         "type": "object"
       },
+      "InspectedLocalRepositoryDto": {
+        "properties": {
+          "backends": {
+            "$ref": "#/components/schemas/RepositoryBackendsDto"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/RepositoryConfigurationDto"
+          },
+          "id": {
+            "type": "string"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/RepositoryMetricsDto"
+          },
+          "name": {
+            "type": "string"
+          },
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotDto"
+            },
+            "type": "array"
+          },
+          "worm": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "metrics",
+          "name",
+          "snapshots",
+          "worm"
+        ],
+        "type": "object"
+      },
       "IntegrationsResponseDto": {
         "properties": {
           "immichIntegration": {
@@ -22355,6 +22468,20 @@
         ],
         "type": "object"
       },
+      "RepositoryInspectResponseDto": {
+        "properties": {
+          "repositories": {
+            "items": {
+              "$ref": "#/components/schemas/InspectedLocalRepositoryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "repositories"
+        ],
+        "type": "object"
+      },
       "RepositoryListResponseDto": {
         "properties": {
           "repositories": {
@@ -22387,6 +22514,20 @@
         "required": [
           "sizeBytes"
         ],
+        "type": "object"
+      },
+      "RepositorySnapshotRestoreFromPointRequestDto": {
+        "properties": {
+          "include": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "yuccaConfig": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "RepositorySnapshotRestoreRequestDto": {
@@ -23989,12 +24130,19 @@
           "id": {
             "type": "string"
           },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "time": {
             "type": "string"
           }
         },
         "required": [
           "id",
+          "paths",
           "time"
         ],
         "type": "object"
