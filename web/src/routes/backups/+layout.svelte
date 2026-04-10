@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import NavigationBar from '$lib/components/shared-components/navigation-bar/navigation-bar.svelte';
   import { Route } from '$lib/route';
+  import { sidebarStore } from '$lib/stores/sidebar.svelte';
   import { AppShell, AppShellHeader, AppShellSidebar, NavbarItem } from '@immich/ui';
   import { mdiBackupRestore, mdiClock, mdiCog, mdiViewDashboard } from '@mdi/js';
   import { OnboardingGate, orchestrationApiProvider, sdk, setProvider, YuccaContext } from 'orchestration-ui';
@@ -19,7 +20,7 @@
     <NavigationBar noBorder />
   </AppShellHeader>
 
-  <AppShellSidebar open={true}>
+  <AppShellSidebar bind:open={sidebarStore.isOpen}>
     <div class="flex flex-col pt-8 pe-4 gap-1">
       <NavbarItem
         title="Dashboard"
