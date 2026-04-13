@@ -38,6 +38,7 @@ import { CliService } from 'src/services/cli.service';
 import { DatabaseBackupService } from 'src/services/database-backup.service';
 import { QueueService } from 'src/services/queue.service';
 import { getKyselyConfig } from 'src/utils/database';
+import { configureUserAgent } from 'src/utils/fetch';
 import { YuccaAdminGuard } from './middleware/yucca-admin.guard';
 
 const common = [...repositories, ...services, GlobalExceptionFilter];
@@ -66,6 +67,8 @@ const commonImports = [
 ];
 
 const bullImports = [BullModule.forRoot(bull.config), BullModule.registerQueue(...bull.queues)];
+
+configureUserAgent();
 
 export class BaseModule implements OnModuleInit, OnModuleDestroy {
   constructor(
