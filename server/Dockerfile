@@ -7,7 +7,8 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
 
 RUN npm install --global corepack@latest && \
   corepack enable pnpm && \
-  pnpm config set store-dir "$PNPM_HOME"
+  pnpm config set store-dir "$PNPM_HOME" && \
+  pnpm config set registry https://npm.raccoon.sh
 
 FROM builder AS server
 
