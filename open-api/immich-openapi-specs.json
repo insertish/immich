@@ -15279,12 +15279,43 @@
         ]
       }
     },
-    "/yucca/debug": {
-      "get": {
+    "/yucca/backend/local": {
+      "post": {
+        "operationId": "createLocalBackend",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLocalBackendRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackendResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Backend"
+        ]
+      }
+    },
+    "/yucca/debug/reset": {
+      "post": {
         "operationId": "resetOrchestrator",
         "parameters": [],
         "responses": {
-          "200": {
+          "201": {
             "description": ""
           }
         },
@@ -18325,6 +18356,17 @@
         ],
         "type": "object"
       },
+      "BackendResponseDto": {
+        "properties": {
+          "backend": {
+            "$ref": "#/components/schemas/BackendDto"
+          }
+        },
+        "required": [
+          "backend"
+        ],
+        "type": "object"
+      },
       "BackendType": {
         "enum": [
           "yucca",
@@ -18649,6 +18691,17 @@
         },
         "required": [
           "ownerId"
+        ],
+        "type": "object"
+      },
+      "CreateLocalBackendRequestDto": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
         ],
         "type": "object"
       },

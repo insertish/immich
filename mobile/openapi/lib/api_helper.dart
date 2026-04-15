@@ -82,6 +82,9 @@ String parameterToString(dynamic value) {
   if (value is AudioCodec) {
     return AudioCodecTypeTransformer().encode(value).toString();
   }
+  if (value is BackendType) {
+    return BackendTypeTypeTransformer().encode(value).toString();
+  }
   if (value is BulkIdErrorReason) {
     return BulkIdErrorReasonTypeTransformer().encode(value).toString();
   }
@@ -151,6 +154,9 @@ String parameterToString(dynamic value) {
   if (value is ReactionType) {
     return ReactionTypeTypeTransformer().encode(value).toString();
   }
+  if (value is RunStatus) {
+    return RunStatusTypeTransformer().encode(value).toString();
+  }
   if (value is SearchSuggestionType) {
     return SearchSuggestionTypeTypeTransformer().encode(value).toString();
   }
@@ -168,6 +174,12 @@ String parameterToString(dynamic value) {
   }
   if (value is SyncRequestType) {
     return SyncRequestTypeTypeTransformer().encode(value).toString();
+  }
+  if (value is TaskStatus) {
+    return TaskStatusTypeTransformer().encode(value).toString();
+  }
+  if (value is TaskType) {
+    return TaskTypeTypeTransformer().encode(value).toString();
   }
   if (value is ToneMapping) {
     return ToneMappingTypeTransformer().encode(value).toString();
