@@ -10,8 +10,8 @@ import { ArgOf, EventRepository } from 'src/repositories/event.repository';
 import { LibraryRepository } from 'src/repositories/library.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { WebsocketRepository } from 'src/repositories/websocket.repository';
+import { AuthService } from 'src/services/auth.service';
 import { getExternalDomain } from 'src/utils/misc';
-import { AuthService } from './auth.service';
 
 @Injectable()
 export class YuccaService implements OnModuleInit, OnModuleDestroy {
@@ -48,19 +48,21 @@ export class YuccaService implements OnModuleInit, OnModuleDestroy {
     this.eventsGateway.off(this.onInternalEvent);
   }
 
-  private async updateSystemConfig({ server }: SystemConfig) {
+  private updateSystemConfig({ server }: SystemConfig) {
     this.moduleConfig.update({
       externalBaseUrl: getExternalDomain(server),
     });
   }
 
   private async updateLibraryConfig() {
+    const libraries = await this.libraryRepository.getAll();
+
     this.moduleConfig.update({
       immichIntegration: {
         dataPath: StorageCore.getMediaLocation(),
         dataFolders: Object.values(StorageFolder),
-        libraries: (await this.libraryRepository.getAll())
-          .filter((r) => !r.deletedAt)
+        libraries: libraries
+          .filter((library) => !library.deletedAt)
           .map(({ id, name, importPaths, exclusionPatterns }) => ({ id, name, importPaths, exclusionPatterns })),
       },
     });
@@ -68,7 +70,7 @@ export class YuccaService implements OnModuleInit, OnModuleDestroy {
 
   @OnEvent({ name: 'ConfigInit', workers: [ImmichWorker.Api] })
   async onConfigInit({ newConfig }: ArgOf<'ConfigInit'>) {
-    void this.updateSystemConfig(newConfig);
+    this.updateSystemConfig(newConfig);
     void this.updateLibraryConfig();
 
     this.lock = await this.databaseRepository.tryLock(DatabaseLock.YuccaModuleConfig);
