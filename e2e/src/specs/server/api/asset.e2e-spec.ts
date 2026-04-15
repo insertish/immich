@@ -1,7 +1,6 @@
 import {
   AssetMediaResponseDto,
   AssetMediaStatus,
-  AssetResponseDto,
   AssetTypeEnum,
   AssetVisibility,
   getAssetInfo,
@@ -19,7 +18,7 @@ import { Socket } from 'socket.io-client';
 import { createUserDto, uuidDto } from 'src/fixtures';
 import { makeRandomImage } from 'src/generators';
 import { errorDto } from 'src/responses';
-import { app, asBearerAuth, tempDir, TEN_TIMES, testAssetDir, utils } from 'src/utils';
+import { app, asBearerAuth, tempDir, testAssetDir, utils } from 'src/utils';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -95,8 +94,8 @@ describe('/asset', () => {
       utils.createAsset(user1.accessToken),
       utils.createAsset(user1.accessToken, {
         isFavorite: true,
-        fileCreatedAt: yesterday.toISO(),
-        fileModifiedAt: yesterday.toISO(),
+        fileCreatedAt: yesterday.toUTC().toISO(),
+        fileModifiedAt: yesterday.toUTC().toISO(),
         assetData: { filename: 'example.mp4' },
       }),
       utils.createAsset(user1.accessToken),
@@ -380,62 +379,12 @@ describe('/asset', () => {
     });
   });
 
-  describe('GET /assets/random', () => {
-    beforeAll(async () => {
-      await Promise.all([
-        utils.createAsset(user1.accessToken),
-        utils.createAsset(user1.accessToken),
-        utils.createAsset(user1.accessToken),
-        utils.createAsset(user1.accessToken),
-        utils.createAsset(user1.accessToken),
-        utils.createAsset(user1.accessToken),
-      ]);
-
-      await utils.waitForQueueFinish(admin.accessToken, 'thumbnailGeneration');
-    });
-
-    it.each(TEN_TIMES)('should return 1 random assets', async () => {
-      const { status, body } = await request(app)
-        .get('/assets/random')
-        .set('Authorization', `Bearer ${user1.accessToken}`);
-
-      expect(status).toBe(200);
-
-      const assets: AssetResponseDto[] = body;
-      expect(assets.length).toBe(1);
-      expect(assets[0].ownerId).toBe(user1.userId);
-    });
-
-    it.each(TEN_TIMES)('should return 2 random assets', async () => {
-      const { status, body } = await request(app)
-        .get('/assets/random?count=2')
-        .set('Authorization', `Bearer ${user1.accessToken}`);
-
-      expect(status).toBe(200);
-
-      const assets: AssetResponseDto[] = body;
-      expect(assets.length).toBe(2);
-
-      for (const asset of assets) {
-        expect(asset.ownerId).toBe(user1.userId);
-      }
-    });
-
-    it.skip('should return 1 asset if there are 10 assets in the database but user 2 only has 1', async () => {
-      const { status, body } = await request(app)
-        .get('/assets/random')
-        .set('Authorization', `Bearer ${user2.accessToken}`);
-
-      expect(status).toBe(200);
-      expect(body).toEqual([expect.objectContaining({ id: user2Assets[0].id })]);
-    });
-  });
-
   describe('PUT /assets/:id', () => {
     it('should require access', async () => {
       const { status, body } = await request(app)
         .put(`/assets/${user2Assets[0].id}`)
-        .set('Authorization', `Bearer ${user1.accessToken}`);
+        .set('Authorization', `Bearer ${user1.accessToken}`)
+        .send({});
       expect(status).toBe(400);
       expect(body).toEqual(errorDto.noPermission);
     });

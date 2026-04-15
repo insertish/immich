@@ -2,14 +2,13 @@ import { authManager } from '$lib/managers/auth-manager.svelte';
 import { uploadManager } from '$lib/managers/upload-manager.svelte';
 import { addAssetsToAlbums } from '$lib/services/album.service';
 import { uploadAssetsStore } from '$lib/stores/upload';
-import { user } from '$lib/stores/user.store';
 import { UploadState } from '$lib/types';
 import { uploadRequest } from '$lib/utils';
 import { ExecutorQueue } from '$lib/utils/executor-queue';
 import { asQueryString } from '$lib/utils/shared-links';
 import {
-  Action,
   AssetMediaStatus,
+  AssetUploadAction,
   AssetVisibility,
   checkBulkUpload,
   getBaseUrl,
@@ -145,7 +144,7 @@ async function fileUploader({
 }: FileUploaderParams): Promise<string | undefined> {
   const fileCreatedAt = new Date(assetFile.lastModified).toISOString();
   const $t = get(t);
-  const wasInitiallyLoggedIn = !!get(user);
+  const wasInitiallyLoggedIn = !!authManager.authenticated;
 
   uploadAssetsStore.markStarted(deviceAssetId);
 
@@ -181,7 +180,7 @@ async function fileUploader({
         const {
           results: [checkUploadResult],
         } = await checkBulkUpload({ assetBulkUploadCheckDto: { assets: [{ id: assetFile.name, checksum }] } });
-        if (checkUploadResult.action === Action.Reject && checkUploadResult.assetId) {
+        if (checkUploadResult.action === AssetUploadAction.Reject && checkUploadResult.assetId) {
           responseData = {
             status: AssetMediaStatus.Duplicate,
             id: checkUploadResult.assetId,
@@ -238,7 +237,7 @@ async function fileUploader({
   } catch (error) {
     // If the user store no longer holds a user, it means they have logged out
     // In this case don't bother reporting any errors.
-    if (wasInitiallyLoggedIn && !get(user)) {
+    if (wasInitiallyLoggedIn && !authManager.authenticated) {
       return;
     }
 

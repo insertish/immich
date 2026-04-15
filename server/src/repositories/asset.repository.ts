@@ -318,7 +318,7 @@ export class AssetRepository {
       .execute();
   }
 
-  upsertMetadata(id: string, items: Array<{ key: string; value: object }>) {
+  upsertMetadata(id: string, items: Array<{ key: string; value: Record<string, unknown> }>) {
     if (items.length === 0) {
       return [];
     }
@@ -679,19 +679,6 @@ export class AssetRepository {
       .$if(!!isTrashed, (qb) => qb.where('asset.status', '!=', AssetStatus.Deleted))
       .where('deletedAt', isTrashed ? 'is not' : 'is', null)
       .executeTakeFirstOrThrow();
-  }
-
-  getRandom(userIds: string[], take: number) {
-    return this.db
-      .selectFrom('asset')
-      .selectAll('asset')
-      .$call(withExif)
-      .$call(withDefaultVisibility)
-      .where('ownerId', '=', anyUuid(userIds))
-      .where('deletedAt', 'is', null)
-      .orderBy((eb) => eb.fn('random'))
-      .limit(take)
-      .execute();
   }
 
   @GenerateSql({ params: [{}] })

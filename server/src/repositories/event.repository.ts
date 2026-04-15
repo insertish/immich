@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ModuleRef, Reflector } from '@nestjs/core';
-import { ClassConstructor } from 'class-transformer';
 import _ from 'lodash';
 import { GatewayEvent as YuccaGatewayEvent } from 'orchestration-api/dist/events/events.gateway';
 import { Socket } from 'socket.io';
@@ -159,7 +158,7 @@ export class EventRepository {
     this.logger.setContext(EventRepository.name);
   }
 
-  setup({ services }: { services: ClassConstructor<unknown>[] }) {
+  setup({ services }: { services: (new (...args: any[]) => unknown)[] }) {
     const reflector = this.moduleRef.get(Reflector, { strict: false });
     const items: Item<EmitEvent>[] = [];
     const worker = this.configRepository.getWorker();
