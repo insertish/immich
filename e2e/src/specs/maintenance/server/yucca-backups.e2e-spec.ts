@@ -294,7 +294,7 @@ describe('/yucca', () => {
           backend: { id: backendId },
         } = await sdk.createLocalBackend(
           {
-            path: '/data/local-test',
+            path: '/local-backend',
           },
           maintenanceRequestOpts,
         );
