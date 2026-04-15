@@ -741,6 +741,8 @@ jobs:
           node-version-file: './server/.nvmrc'
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
+      - name: Configure npm registry
+        run: pnpm set registry https://npm.raccoon.sh/
       - name: Install server dependencies
         run: SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm --filter immich install --frozen-lockfile
       - name: Build the app
@@ -803,6 +805,8 @@ jobs:
           node-version-file: './server/.nvmrc'
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
+      - name: Configure npm registry
+        run: pnpm set registry https://npm.raccoon.sh/
       - name: Install server dependencies
         run: SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm install --frozen-lockfile
       - name: Build the app
