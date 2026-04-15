@@ -45,7 +45,9 @@ export class YuccaService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleDestroy() {
-    this.eventsGateway.off(this.onInternalEvent);
+    if (this.eventsGateway) {
+      this.eventsGateway.off(this.onInternalEvent);
+    }
   }
 
   private updateSystemConfig({ server }: SystemConfig) {
