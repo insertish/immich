@@ -20,6 +20,7 @@ import { ErrorInterceptor } from 'src/middleware/error.interceptor';
 import { FileUploadInterceptor } from 'src/middleware/file-upload.interceptor';
 import { GlobalExceptionFilter } from 'src/middleware/global-exception.filter';
 import { LoggingInterceptor } from 'src/middleware/logging.interceptor';
+import { YuccaAdminGuard } from 'src/middleware/yucca-admin.guard';
 import { repositories } from 'src/repositories';
 import { AppRepository } from 'src/repositories/app.repository';
 import { ConfigRepository } from 'src/repositories/config.repository';
@@ -39,7 +40,6 @@ import { DatabaseBackupService } from 'src/services/database-backup.service';
 import { QueueService } from 'src/services/queue.service';
 import { getKyselyConfig } from 'src/utils/database';
 import { configureUserAgent } from 'src/utils/fetch';
-import { YuccaAdminGuard } from './middleware/yucca-admin.guard';
 
 const common = [...repositories, ...services, GlobalExceptionFilter];
 
@@ -112,7 +112,10 @@ export class BaseModule implements OnModuleInit, OnModuleDestroy {
     ...commonImports,
     ScheduleModule.forRoot(),
     OrchestrationApiModule.forRoot({
-      yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
+      // TODO: db init must happen elsewhere...
+
+      yuccaProductionApi: 'https://staging.fubar.computer',
+      // yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
       statePath: '/yucca', // TODO
       requireWsAuth: true,
       requireLock: true,
@@ -127,7 +130,8 @@ export class ApiModule extends BaseModule {}
   imports: [
     ...commonImports,
     OrchestrationApiModule.forRoot({
-      yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
+      yuccaProductionApi: 'https://staging.fubar.computer',
+      // yuccaProductionApi: 'http://100.64.0.6:5173', // TODO
       statePath: '/yucca', // TODO
       externalBaseUrl: 'https://my.immich.app',
       requireWsAuth: true,
