@@ -90,7 +90,7 @@ export class ServerService extends BaseService {
       reverseGeocoding,
       metadata,
       map,
-      backup: _backup,
+      backup,
       machineLearning,
       trash,
       oauth,
@@ -105,8 +105,7 @@ export class ServerService extends BaseService {
       facialRecognition: isFacialRecognitionEnabled(machineLearning),
       duplicateDetection: isDuplicateDetectionEnabled(machineLearning),
       map: map.enabled,
-      backups: true, // TODO[YUCCA]: pinned to true for closed beta
-      // backups: backup.beta,
+      backups: backup.beta,
       reverseGeocoding: reverseGeocoding.enabled,
       importFaces: metadata.faces.import,
       sidecar: true,
