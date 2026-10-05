@@ -22,6 +22,7 @@ jobs:
           private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
           permission-contents: write
           permission-pull-requests: write
+          permission-workflows: write
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,11 +31,12 @@ jobs:
           persist-credentials: true
 
       - name: Create backport pull requests
-        uses: korthout/backport-action@2e830a1d0b8269505846ddd407a70876913ad1f8 # v4.6.0
+        uses: korthout/backport-action@6b65649031ac6d18ffdfd0c0820e9436f3fde22b # v4.6.1
         with:
           github_token: ${{ steps.token.outputs.token }}
           label_pattern: '^backport:(release/.+)$'
-          add_team_reviewers: team
+          add_team_reviewers: employees
+          add_labels: 'backport'
           auto_merge_enabled: true
           auto_merge_method: squash
           comment_style: summary
@@ -45,5 +47,6 @@ jobs:
               "conflict_resolution": "draft_commit_conflicts"
             }
           pull_title: '${pull_title}'
+          pull_description: 'Backport of #${pull_number} to `${target_branch}`.'
           git_committer_name: 'immich-push-o-matic[bot]'
           git_committer_email: '179150890+immich-push-o-matic[bot]@users.noreply.github.com'
