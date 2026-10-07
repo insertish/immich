@@ -199,10 +199,6 @@ const patchOpenAPI = (document: OpenAPIObject) => {
     delete object.propertyNames;
     delete object.contentEncoding;
 
-    if (object.nullable && Array.isArray(object.enum)) {
-      object.enum = object.enum.filter((value) => value !== null);
-    }
-
     for (const value of Object.values(object)) {
       removeOpenApi30IncompatibleKeys(value);
     }
