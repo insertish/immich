@@ -276,7 +276,7 @@ const patchOpenAPI = (document: OpenAPIObject) => {
     document.paths[newKey] = value;
   }
 
-  for (const path of Object.values(document.paths)) {
+  for (const [key, path] of Object.entries(document.paths)) {
     const operations = {
       get: path.get,
       put: path.put,
@@ -313,6 +313,20 @@ const patchOpenAPI = (document: OpenAPIObject) => {
       if (operation.parameters) {
         operation.parameters = orderBy(operation.parameters, 'name');
       }
+
+      if (!key.startsWith('/yucca')) {
+        continue;
+      }
+
+      // add FUTO Backups specific metadata
+
+      if (operation.operationId) {
+        operation.operationId = `yucca${operation.operationId.charAt(0).toUpperCase()}${operation.operationId.slice(1)}`;
+      }
+
+      operation.tags = ['Backups'];
+
+      // TODO: add auth.guard.ts#Authenticated
     }
   }
 

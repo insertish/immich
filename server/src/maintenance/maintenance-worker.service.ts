@@ -376,10 +376,8 @@ export class MaintenanceWorkerService {
       action: MaintenanceAction.Rollback,
     });
 
-    // code needs to be pulled back into yucca sdk
-
     const yucca = this.moduleRef.get(YuccaService, { strict: false });
-    const { logId, task, tags } = await yucca.restoreSnapshotInplace(repositoryId, snapshotId);
+    const { logId, task, immichBackupFileName } = await yucca.restoreSnapshotInplace(repositoryId, snapshotId);
 
     this.setStatus({
       active: true,
@@ -389,18 +387,13 @@ export class MaintenanceWorkerService {
 
     await task;
 
-    enum ResticTagPrefix {
-      ImmichBackupFileName = 'yucca.v1.immichBackupFileName',
-    }
-
-    const backupFileNameTag = tags.find((item) => item.startsWith(`${ResticTagPrefix.ImmichBackupFileName}=`));
-    if (!backupFileNameTag) {
+    if (!immichBackupFileName) {
       return this.setAction({
         action: MaintenanceAction.SelectDatabaseRestore,
       });
     }
 
-    const backupFileName = basename(backupFileNameTag.slice(ResticTagPrefix.ImmichBackupFileName.length + 1));
+    const backupFileName = basename(immichBackupFileName);
     await this.restoreBackup(backupFileName);
   }
 
