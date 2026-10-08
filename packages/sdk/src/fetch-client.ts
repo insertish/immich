@@ -8275,7 +8275,7 @@ export function getWorkflowForShare({ id }: {
 /**
  * Connect a FUTO Backups account
  */
-export function connectDeviceFlow(opts?: Oazapfts.RequestOpts) {
+export function yuccaConnectDeviceFlow(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: DeviceFlowEventDto;
@@ -8286,7 +8286,7 @@ export function connectDeviceFlow(opts?: Oazapfts.RequestOpts) {
 /**
  * Create session
  */
-export function createSession2({ createSessionRequestDto }: {
+export function yuccaCreateSession({ createSessionRequestDto }: {
     createSessionRequestDto: CreateSessionRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/auth/session", oazapfts.json({
@@ -8298,7 +8298,7 @@ export function createSession2({ createSessionRequestDto }: {
 /**
  * Sign in with FUTO Backups account
  */
-export function sessionDeviceFlow(opts?: Oazapfts.RequestOpts) {
+export function yuccaSessionDeviceFlow(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: DeviceFlowEventDto;
@@ -8309,7 +8309,7 @@ export function sessionDeviceFlow(opts?: Oazapfts.RequestOpts) {
 /**
  * Create a ticket
  */
-export function createTicket({ ticketCreateRequestDto }: {
+export function yuccaCreateTicket({ ticketCreateRequestDto }: {
     ticketCreateRequestDto: TicketCreateRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8324,7 +8324,7 @@ export function createTicket({ ticketCreateRequestDto }: {
 /**
  * List backends
  */
-export function getBackends(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetBackends(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: BackendsResponseDto;
@@ -8335,7 +8335,7 @@ export function getBackends(opts?: Oazapfts.RequestOpts) {
 /**
  * Create a local backend
  */
-export function createLocalBackend({ createLocalBackendRequestDto }: {
+export function yuccaCreateLocalBackend({ createLocalBackendRequestDto }: {
     createLocalBackendRequestDto: CreateLocalBackendRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8350,7 +8350,7 @@ export function createLocalBackend({ createLocalBackendRequestDto }: {
 /**
  * Get backups orchestrator configuration
  */
-export function getConfig2(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetConfig(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: ConfigResponseDto;
@@ -8361,7 +8361,7 @@ export function getConfig2(opts?: Oazapfts.RequestOpts) {
 /**
  * Update backups orchestrator configuration
  */
-export function updateConfig2({ configUpdateRequestDto }: {
+export function yuccaUpdateConfig({ configUpdateRequestDto }: {
     configUpdateRequestDto: ConfigUpdateRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8376,7 +8376,7 @@ export function updateConfig2({ configUpdateRequestDto }: {
 /**
  * Reset the backups orchestrator
  */
-export function resetOrchestrator(opts?: Oazapfts.RequestOpts) {
+export function yuccaResetOrchestrator(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/debug/reset", {
         ...opts,
         method: "POST"
@@ -8385,7 +8385,7 @@ export function resetOrchestrator(opts?: Oazapfts.RequestOpts) {
 /**
  * List files
  */
-export function getFileListing({ path }: {
+export function yuccaGetFileListing({ path }: {
     path?: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8400,7 +8400,7 @@ export function getFileListing({ path }: {
 /**
  * Get backup integrations
  */
-export function getIntegrations(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetIntegrations(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: IntegrationsResponseDto;
@@ -8411,7 +8411,7 @@ export function getIntegrations(opts?: Oazapfts.RequestOpts) {
 /**
  * Configure the Immich backup integration
  */
-export function configureImmichIntegration({ configureImmichIntegrationRequestDto }: {
+export function yuccaConfigureImmichIntegration({ configureImmichIntegrationRequestDto }: {
     configureImmichIntegrationRequestDto: ConfigureImmichIntegrationRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8426,7 +8426,7 @@ export function configureImmichIntegration({ configureImmichIntegrationRequestDt
 /**
  * Configure Immich database dumps
  */
-export function configureImmichDatabaseDump({ configureImmichDatabaseDumpRequestDto }: {
+export function yuccaConfigureImmichDatabaseDump({ configureImmichDatabaseDumpRequestDto }: {
     configureImmichDatabaseDumpRequestDto: ConfigureImmichDatabaseDumpRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/integrations/immich/database-dump", oazapfts.json({
@@ -8438,7 +8438,7 @@ export function configureImmichDatabaseDump({ configureImmichDatabaseDumpRequest
 /**
  * Ignore the Immich database dump warning
  */
-export function ignoreImmichDatabaseDumpWarning(opts?: Oazapfts.RequestOpts) {
+export function yuccaIgnoreImmichDatabaseDumpWarning(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/integrations/immich/database-dump/ignore-warning", {
         ...opts,
         method: "POST"
@@ -8447,7 +8447,7 @@ export function ignoreImmichDatabaseDumpWarning(opts?: Oazapfts.RequestOpts) {
 /**
  * Roll Immich back to a snapshot
  */
-export function startImmichRollback({ immichRollbackRequestDto }: {
+export function yuccaStartImmichRollback({ immichRollbackRequestDto }: {
     immichRollbackRequestDto: ImmichRollbackRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/integrations/immich/rollback", oazapfts.json({
@@ -8459,7 +8459,7 @@ export function startImmichRollback({ immichRollbackRequestDto }: {
 /**
  * Get Immich backup status
  */
-export function getImmichBackupStatus(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetImmichBackupStatus(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: ImmichBackupStatusDto;
@@ -8470,7 +8470,7 @@ export function getImmichBackupStatus(opts?: Oazapfts.RequestOpts) {
 /**
  * Get a run
  */
-export function getRun({ id }: {
+export function yuccaGetRun({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8483,7 +8483,7 @@ export function getRun({ id }: {
 /**
  * Download a run log
  */
-export function downloadRunLog({ id }: {
+export function yuccaDownloadRunLog({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchBlob<{
@@ -8496,7 +8496,7 @@ export function downloadRunLog({ id }: {
 /**
  * Stream a run log
  */
-export function logStreamSse({ id }: {
+export function yuccaLogStreamSse({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText(`/yucca/logs/${encodeURIComponent(id)}/stream`, {
@@ -8506,7 +8506,7 @@ export function logStreamSse({ id }: {
 /**
  * Get backup onboarding status
  */
-export function onboardingStatus(opts?: Oazapfts.RequestOpts) {
+export function yuccaOnboardingStatus(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: OnboardingStatusResponseDto;
@@ -8517,7 +8517,7 @@ export function onboardingStatus(opts?: Oazapfts.RequestOpts) {
 /**
  * Get the backup recovery key
  */
-export function currentRecoveryKey(opts?: Oazapfts.RequestOpts) {
+export function yuccaCurrentRecoveryKey(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: CurrentRecoveryKeyResponse;
@@ -8528,7 +8528,7 @@ export function currentRecoveryKey(opts?: Oazapfts.RequestOpts) {
 /**
  * Confirm the backup recovery key
  */
-export function confirmRecoveryKey(opts?: Oazapfts.RequestOpts) {
+export function yuccaConfirmRecoveryKey(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/onboarding/recovery-key", {
         ...opts,
         method: "POST"
@@ -8537,7 +8537,7 @@ export function confirmRecoveryKey(opts?: Oazapfts.RequestOpts) {
 /**
  * Import a backup recovery key
  */
-export function importRecoveryKey({ importRecoveryKeyRequest }: {
+export function yuccaImportRecoveryKey({ importRecoveryKeyRequest }: {
     importRecoveryKeyRequest: ImportRecoveryKeyRequest;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/onboarding/recovery-key", oazapfts.json({
@@ -8549,7 +8549,7 @@ export function importRecoveryKey({ importRecoveryKeyRequest }: {
 /**
  * Report a startup error
  */
-export function reportError(opts?: Oazapfts.RequestOpts) {
+export function yuccaReportError(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/onboarding/report-error", {
         ...opts,
         method: "POST"
@@ -8558,7 +8558,7 @@ export function reportError(opts?: Oazapfts.RequestOpts) {
 /**
  * Skip optional backup onboarding
  */
-export function skipOnboardingExtraConfig(opts?: Oazapfts.RequestOpts) {
+export function yuccaSkipOnboardingExtraConfig(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/onboarding/skip", {
         ...opts,
         method: "POST"
@@ -8567,7 +8567,7 @@ export function skipOnboardingExtraConfig(opts?: Oazapfts.RequestOpts) {
 /**
  * Enable FUTO Backups telemetry
  */
-export function enableTelemetry(opts?: Oazapfts.RequestOpts) {
+export function yuccaEnableTelemetry(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText("/yucca/onboarding/telemetry", {
         ...opts,
         method: "POST"
@@ -8576,7 +8576,7 @@ export function enableTelemetry(opts?: Oazapfts.RequestOpts) {
 /**
  * List backups
  */
-export function getRepositories(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetRepositories(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: RepositoryListResponseDto;
@@ -8587,7 +8587,7 @@ export function getRepositories(opts?: Oazapfts.RequestOpts) {
 /**
  * Create a new backup
  */
-export function createRepository({ backend, repositoryCreateRequestDto }: {
+export function yuccaCreateRepository({ backend, repositoryCreateRequestDto }: {
     backend?: string;
     repositoryCreateRequestDto: RepositoryCreateRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8605,7 +8605,7 @@ export function createRepository({ backend, repositoryCreateRequestDto }: {
 /**
  * List remote backups
  */
-export function inspectRepositories({ backend }: {
+export function yuccaInspectRepositories({ backend }: {
     backend?: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8620,7 +8620,7 @@ export function inspectRepositories({ backend }: {
 /**
  * Remove a backup
  */
-export function deleteRepository({ id }: {
+export function yuccaDeleteRepository({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText(`/yucca/repository/${encodeURIComponent(id)}`, {
@@ -8631,7 +8631,7 @@ export function deleteRepository({ id }: {
 /**
  * Update a backup
  */
-export function updateRepository({ backend, id, repositoryUpdateRequestDto }: {
+export function yuccaUpdateRepository({ backend, id, repositoryUpdateRequestDto }: {
     backend?: string;
     id: string;
     repositoryUpdateRequestDto: RepositoryUpdateRequestDto;
@@ -8650,7 +8650,7 @@ export function updateRepository({ backend, id, repositoryUpdateRequestDto }: {
 /**
  * Start a backup
  */
-export function createBackup({ id }: {
+export function yuccaCreateBackup({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8664,7 +8664,7 @@ export function createBackup({ id }: {
 /**
  * Change the primary backend
  */
-export function reconfigureRepositoryPrimaryBackend({ id, repositoryPrimaryBackendReconfigureRequestDto }: {
+export function yuccaReconfigureRepositoryPrimaryBackend({ id, repositoryPrimaryBackendReconfigureRequestDto }: {
     id: string;
     repositoryPrimaryBackendReconfigureRequestDto: RepositoryPrimaryBackendReconfigureRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8680,7 +8680,7 @@ export function reconfigureRepositoryPrimaryBackend({ id, repositoryPrimaryBacke
 /**
  * Check a repository import
  */
-export function checkImportRepository({ backend, id }: {
+export function yuccaCheckImportRepository({ backend, id }: {
     backend: string;
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8696,7 +8696,7 @@ export function checkImportRepository({ backend, id }: {
 /**
  * Import a repository
  */
-export function importRepository({ backend, id }: {
+export function yuccaImportRepository({ backend, id }: {
     backend: string;
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8713,7 +8713,7 @@ export function importRepository({ backend, id }: {
 /**
  * List backup runs
  */
-export function getRunHistory({ id }: {
+export function yuccaGetRunHistory({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8726,7 +8726,7 @@ export function getRunHistory({ id }: {
 /**
  * List snapshots
  */
-export function getSnapshots({ id }: {
+export function yuccaGetSnapshots({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8739,7 +8739,7 @@ export function getSnapshots({ id }: {
 /**
  * Prune a repository
  */
-export function pruneRepository({ id }: {
+export function yuccaPruneRepository({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8753,7 +8753,7 @@ export function pruneRepository({ id }: {
 /**
  * Delete a snapshot
  */
-export function forgetSnapshot({ id, snapshot }: {
+export function yuccaForgetSnapshot({ id, snapshot }: {
     id: string;
     snapshot: string;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8768,7 +8768,7 @@ export function forgetSnapshot({ id, snapshot }: {
 /**
  * Restore a snapshot
  */
-export function restoreSnapshot({ id, snapshot, repositorySnapshotRestoreRequestDto }: {
+export function yuccaRestoreSnapshot({ id, snapshot, repositorySnapshotRestoreRequestDto }: {
     id: string;
     snapshot: string;
     repositorySnapshotRestoreRequestDto: RepositorySnapshotRestoreRequestDto;
@@ -8785,7 +8785,7 @@ export function restoreSnapshot({ id, snapshot, repositorySnapshotRestoreRequest
 /**
  * List snapshot files
  */
-export function getSnapshotListing({ id, path, snapshot }: {
+export function yuccaGetSnapshotListing({ id, path, snapshot }: {
     id: string;
     path?: string;
     snapshot: string;
@@ -8802,7 +8802,7 @@ export function getSnapshotListing({ id, path, snapshot }: {
 /**
  * Restore from snapshot
  */
-export function restoreFromPoint({ backend, id, snapshot, repositorySnapshotRestoreFromPointRequestDto }: {
+export function yuccaRestoreFromPoint({ backend, id, snapshot, repositorySnapshotRestoreFromPointRequestDto }: {
     backend: string;
     id: string;
     snapshot: string;
@@ -8822,7 +8822,7 @@ export function restoreFromPoint({ backend, id, snapshot, repositorySnapshotRest
 /**
  * List schedules
  */
-export function getSchedules(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetSchedules(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: ScheduleListResponseDto;
@@ -8833,7 +8833,7 @@ export function getSchedules(opts?: Oazapfts.RequestOpts) {
 /**
  * Create a schedule
  */
-export function createSchedule({ scheduleCreateRequestDto }: {
+export function yuccaCreateSchedule({ scheduleCreateRequestDto }: {
     scheduleCreateRequestDto: ScheduleCreateRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
@@ -8848,7 +8848,7 @@ export function createSchedule({ scheduleCreateRequestDto }: {
 /**
  * Delete a schedule
  */
-export function removeSchedule({ id }: {
+export function yuccaRemoveSchedule({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText(`/yucca/schedule/${encodeURIComponent(id)}`, {
@@ -8859,7 +8859,7 @@ export function removeSchedule({ id }: {
 /**
  * Update a schedule
  */
-export function updateSchedule({ id, scheduleUpdateRequestDto }: {
+export function yuccaUpdateSchedule({ id, scheduleUpdateRequestDto }: {
     id: string;
     scheduleUpdateRequestDto: ScheduleUpdateRequestDto;
 }, opts?: Oazapfts.RequestOpts) {
@@ -8875,7 +8875,7 @@ export function updateSchedule({ id, scheduleUpdateRequestDto }: {
 /**
  * List running tasks
  */
-export function getRunningTasks(opts?: Oazapfts.RequestOpts) {
+export function yuccaGetRunningTasks(opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{
         status: 200;
         data: RunningTaskListResponse;
@@ -8886,7 +8886,7 @@ export function getRunningTasks(opts?: Oazapfts.RequestOpts) {
 /**
  * Cancel a task
  */
-export function cancelTask({ parentId }: {
+export function yuccaCancelTask({ parentId }: {
     parentId: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText(`/yucca/tasks/${encodeURIComponent(parentId)}/cancel`, {
