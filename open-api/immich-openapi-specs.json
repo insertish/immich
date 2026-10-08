@@ -18198,7 +18198,30 @@
         "summary": "Connect a FUTO Backups account",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/auth/session": {
@@ -18224,7 +18247,30 @@
         "summary": "Create session",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/auth/session/device": {
@@ -18247,7 +18293,30 @@
         "summary": "Sign in with FUTO Backups account",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/auth/ticket": {
@@ -18280,7 +18349,30 @@
         "summary": "Create a ticket",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/backend": {
@@ -18303,7 +18395,30 @@
         "summary": "List backends",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/backend/local": {
@@ -18336,7 +18451,30 @@
         "summary": "Create a local backend",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/config": {
@@ -18359,7 +18497,30 @@
         "summary": "Get backups orchestrator configuration",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "put": {
         "description": "Update the backups orchestrator configuration.",
@@ -18390,7 +18551,30 @@
         "summary": "Update backups orchestrator configuration",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/debug/reset": {
@@ -18406,7 +18590,30 @@
         "summary": "Reset the backups orchestrator",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/fs": {
@@ -18438,7 +18645,30 @@
         "summary": "List files",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations": {
@@ -18461,7 +18691,30 @@
         "summary": "Get backup integrations",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations/immich": {
@@ -18494,7 +18747,30 @@
         "summary": "Configure the Immich backup integration",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations/immich/database-dump": {
@@ -18520,7 +18796,30 @@
         "summary": "Configure Immich database dumps",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations/immich/database-dump/ignore-warning": {
@@ -18536,7 +18835,30 @@
         "summary": "Ignore the Immich database dump warning",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations/immich/rollback": {
@@ -18562,7 +18884,30 @@
         "summary": "Roll Immich back to a snapshot",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/integrations/immich/status": {
@@ -18585,7 +18930,30 @@
         "summary": "Get Immich backup status",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/logs/{id}": {
@@ -18617,7 +18985,30 @@
         "summary": "Get a run",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/logs/{id}/download": {
@@ -18650,7 +19041,30 @@
         "summary": "Download a run log",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/logs/{id}/stream": {
@@ -18682,7 +19096,30 @@
         "summary": "Stream a run log",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/onboarding": {
@@ -18705,7 +19142,30 @@
         "summary": "Get backup onboarding status",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/onboarding/recovery-key": {
@@ -18728,7 +19188,30 @@
         "summary": "Get the backup recovery key",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Record that the user has saved the recovery key.",
@@ -18742,7 +19225,30 @@
         "summary": "Confirm the backup recovery key",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "put": {
         "description": "Replace the recovery key with one from an earlier installation.",
@@ -18766,7 +19272,30 @@
         "summary": "Import a backup recovery key",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/onboarding/report-error": {
@@ -18782,7 +19311,30 @@
         "summary": "Report a startup error",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/onboarding/skip": {
@@ -18798,7 +19350,30 @@
         "summary": "Skip optional backup onboarding",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/onboarding/telemetry": {
@@ -18814,7 +19389,30 @@
         "summary": "Enable FUTO Backups telemetry",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository": {
@@ -18837,7 +19435,30 @@
         "summary": "List backups",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Create a backup repository on a backend.",
@@ -18877,7 +19498,30 @@
         "summary": "Create a new backup",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/inspect": {
@@ -18909,7 +19553,30 @@
         "summary": "List remote backups",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}": {
@@ -18934,7 +19601,30 @@
         "summary": "Remove a backup",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "patch": {
         "description": "Update the settings of a repository.",
@@ -18982,7 +19672,30 @@
         "summary": "Update a backup",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Start a backup to a repository and return the ID of its run log.",
@@ -19012,7 +19725,30 @@
         "summary": "Start a backup",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/backend": {
@@ -19054,7 +19790,30 @@
         "summary": "Change the primary backend",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/import": {
@@ -19094,7 +19853,30 @@
         "summary": "Check a repository import",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Add an existing repository on a backend to this server.",
@@ -19132,7 +19914,30 @@
         "summary": "Import a repository",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/runs": {
@@ -19164,7 +19969,30 @@
         "summary": "List backup runs",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/snapshots": {
@@ -19196,7 +20024,30 @@
         "summary": "List snapshots",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/snapshots/prune": {
@@ -19228,7 +20079,30 @@
         "summary": "Prune a repository",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/snapshots/{snapshot}": {
@@ -19268,7 +20142,30 @@
         "summary": "Delete a snapshot",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Restore files from a snapshot and return the ID of the run log.",
@@ -19316,7 +20213,30 @@
         "summary": "Restore a snapshot",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/snapshots/{snapshot}/listing": {
@@ -19364,7 +20284,30 @@
         "summary": "List snapshot files",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/repository/{id}/snapshots/{snapshot}/restore-from-point": {
@@ -19422,7 +20365,30 @@
         "summary": "Restore from snapshot",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/schedule": {
@@ -19445,7 +20411,30 @@
         "summary": "List schedules",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "post": {
         "description": "Create a backup schedule for one or more repositories.",
@@ -19476,7 +20465,30 @@
         "summary": "Create a schedule",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/schedule/{id}": {
@@ -19501,7 +20513,30 @@
         "summary": "Delete a schedule",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       },
       "patch": {
         "description": "Update a backup schedule.",
@@ -19541,7 +20576,30 @@
         "summary": "Update a schedule",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/tasks": {
@@ -19564,7 +20622,30 @@
         "summary": "List running tasks",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     },
     "/yucca/tasks/{parentId}/cancel": {
@@ -19589,7 +20670,30 @@
         "summary": "Cancel a task",
         "tags": [
           "Backups"
-        ]
+        ],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.4.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.4.0",
+            "state": "Internal"
+          }
+        ],
+        "x-immich-state": "Internal"
       }
     }
   },

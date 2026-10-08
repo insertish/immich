@@ -13,7 +13,7 @@ import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import picomatch from 'picomatch';
 import { CLIP_MODEL_INFO, JOBS_ASSET_PAGINATION_SIZE, endpointTags, serverVersion } from 'src/constants.js';
-import { extraModels } from 'src/decorators.js';
+import { HistoryBuilder, extraModels } from 'src/decorators.js';
 import { SystemConfig } from 'src/dtos/config.dto.js';
 import { ApiCustomExtension, ImmichCookie, ImmichHeader, MetadataKey } from 'src/enum.js';
 import { LoggingRepository } from 'src/repositories/logging.repository.js';
@@ -276,6 +276,8 @@ const patchOpenAPI = (document: OpenAPIObject) => {
     document.paths[newKey] = value;
   }
 
+  const backupsHistory = new HistoryBuilder().added('v3.4.0').internal('v3.4.0').getExtensions();
+
   for (const [key, path] of Object.entries(document.paths)) {
     const operations = {
       get: path.get,
@@ -325,8 +327,11 @@ const patchOpenAPI = (document: OpenAPIObject) => {
       }
 
       operation.tags = ['Backups'];
+      Object.assign(operation, backupsHistory);
 
-      // TODO: add auth.guard.ts#Authenticated
+      // matches auth.guard.ts#Authenticated() guard
+      operation.security = [{ bearer: [] }, { cookie: [] }, { [MetadataKey.ApiKeySecurity]: [] }];
+      operation[ApiCustomExtension.AdminOnly] = true;
     }
   }
 
